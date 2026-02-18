@@ -1,7 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { Button } from '@/components/ui/button'
+</script>
 
 <template>
   <main>
-    <h1>Home</h1>
+    <Button variant="outline">Click me</Button>
   </main>
 </template>
