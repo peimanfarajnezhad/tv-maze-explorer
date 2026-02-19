@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { ref } from 'vue'
-import { useShowsByGenre } from '../use-shows-by-genre'
-import { clearDb, makeShow, mountComposable, flushPromises, waitUntil } from './test-utils'
+import { describe, it, expect, beforeEach } from 'vitest'
+
 import { db } from '@/db'
 import { genreNameToSlug } from '@/lib/slug'
+import { clearDb, makeShow, mountComposable, flushPromises, waitUntil } from '@/test-utils'
+
+import { useShowsByGenre } from '../use-shows-by-genre'
 
 const PAGE_SIZE = 20
 

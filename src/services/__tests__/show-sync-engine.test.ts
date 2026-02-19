@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ShowSyncEngine, type ShowSyncEngineCallbacks } from '../show-sync-engine'
-import { ApiError } from '../api-client'
+
+import { makeShow } from '@/test-utils'
 import type { TvmazeShow } from '@/types'
+
+import { ApiError } from '../api-client'
+import { ShowSyncEngine, type ShowSyncEngineCallbacks } from '../show-sync-engine'
 
 const mockGetShows = vi.fn()
 const mockGetSyncMeta = vi.fn()
@@ -29,34 +32,6 @@ vi.mock('../rate-limiter', () => ({
     dispose = vi.fn()
   },
 }))
-
-function makeShow(id: number, name: string): TvmazeShow {
-  return {
-    id,
-    name,
-    url: `https://example.com/${id}`,
-    type: 'Scripted',
-    language: 'English',
-    genres: [],
-    status: 'Running',
-    runtime: 60,
-    averageRuntime: 60,
-    premiered: '2020-01-01',
-    ended: null,
-    officialSite: null,
-    schedule: { time: '20:00', days: ['Monday'] },
-    rating: { average: 8 },
-    weight: 1,
-    network: null,
-    webChannel: null,
-    dvdCountry: null,
-    externals: { tvrage: null, thetvdb: null, imdb: null },
-    image: null,
-    summary: null,
-    updated: 1,
-    _links: { self: { href: '' } },
-  } as TvmazeShow
-}
 
 describe('ShowSyncEngine', () => {
   let callbacks: ShowSyncEngineCallbacks

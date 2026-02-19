@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGenreCarousels } from '../use-genre-carousels'
-import { clearDb, makeShow, mountComposable, flushPromises } from './test-utils'
+import { clearDb, makeShow, mountComposable, flushPromises } from '@/test-utils'
 import { db } from '@/db'
 import { useShowSyncStore } from '@/stores/show-sync'
 

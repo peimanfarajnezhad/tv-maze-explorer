@@ -7,35 +7,7 @@ import {
   bulkPutShows,
   getShowCount,
 } from '../index'
-import type { TvmazeShow } from '@/types'
-
-function makeShow(id: number, name: string): TvmazeShow {
-  return {
-    id,
-    name,
-    url: `https://example.com/${id}`,
-    type: 'Scripted',
-    language: 'English',
-    genres: [],
-    status: 'Running',
-    runtime: 60,
-    averageRuntime: 60,
-    premiered: '2020-01-01',
-    ended: null,
-    officialSite: null,
-    schedule: { time: '20:00', days: ['Monday'] },
-    rating: { average: 8 },
-    weight: 1,
-    network: null,
-    webChannel: null,
-    dvdCountry: null,
-    externals: { tvrage: null, thetvdb: null, imdb: null },
-    image: null,
-    summary: null,
-    updated: 1,
-    _links: { self: { href: '' } },
-  } as TvmazeShow
-}
+import { makeShow } from '@/test-utils'
 
 describe('db', () => {
   beforeEach(async () => {
