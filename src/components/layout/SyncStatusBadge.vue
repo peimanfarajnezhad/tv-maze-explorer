@@ -1,21 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useShowSyncStore } from '@/stores/show-sync'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { Button } from '@/components/ui/button'
-import ShowSyncDashboard from '@/components/ShowSyncDashboard.vue'
 import { Database } from 'lucide-vue-next'
+
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
+import { useShowSyncStore } from '@/stores/show-sync'
+import ShowSyncDashboard from '@/components/ShowSyncDashboard.vue'
 
 const store = useShowSyncStore()
 
@@ -40,13 +31,13 @@ const badgeDotClass = computed(() => {
   switch (store.status) {
     case 'probing':
     case 'syncing':
-      return 'bg-blue-500 animate-pulse'
+      return 'bg-blue-500 dark:bg-blue-400 animate-pulse'
     case 'paused':
-      return 'bg-yellow-500'
+      return 'bg-yellow-500 dark:bg-yellow-400'
     case 'completed':
-      return 'bg-green-500'
+      return 'bg-green-500 dark:bg-green-400'
     case 'error':
-      return 'bg-red-500'
+      return 'bg-red-500 dark:bg-red-400'
     default:
       return 'bg-muted-foreground'
   }
@@ -69,10 +60,7 @@ const badgeDotClass = computed(() => {
                 <Database class="size-5 text-muted-foreground" />
                 <span
                   aria-hidden
-                  :class="[
-                    'absolute -right-0.5 -top-0.5 size-2 rounded-full',
-                    badgeDotClass,
-                  ]"
+                  :class="['absolute -right-0.5 -top-0.5 size-2 rounded-full', badgeDotClass]"
                 />
               </span>
             </Button>

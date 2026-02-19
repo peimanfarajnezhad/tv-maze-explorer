@@ -110,7 +110,7 @@ function stripHtml(html: string | null): string {
               {{ yearFromPremiered(show.premiered) }}
             </span>
             <span class="flex items-center gap-1">
-              <StarIcon class="size-4 text-yellow-500" />
+              <StarIcon class="size-4 text-yellow-500 dark:text-yellow-400" />
               {{ formatRating(show.rating?.average) }}
             </span>
             <span v-if="show.genres?.length">
