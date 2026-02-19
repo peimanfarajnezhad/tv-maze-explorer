@@ -4,6 +4,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import SearchModal from './SearchModal.vue'
 import SyncStatusBadge from './SyncStatusBadge.vue'
+import ThemeToggle from './ThemeToggle.vue'
 import { Menu, X, Github } from 'lucide-vue-next'
 import iconUrl from '@/assets/icon.png'
 
@@ -63,7 +64,7 @@ watch(
         <Button
           variant="ghost"
           size="icon"
-          class="md:hidden"
+          class="text-muted-foreground md:hidden"
           aria-label="Toggle menu"
           :aria-expanded="mobileMenuOpen"
           @click="mobileMenuOpen = !mobileMenuOpen"
@@ -82,6 +83,7 @@ watch(
         >
           <Github class="size-5" />
         </a>
+        <ThemeToggle />
         <SyncStatusBadge />
       </div>
     </div>
@@ -107,16 +109,16 @@ watch(
           >
             {{ item.label }}
           </RouterLink>
+          <a
+            href="https://github.com/peimanfarajnezhad/tv-maze-explorer"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            <Github class="size-5" />
+            GitHub
+          </a>
         </nav>
-        <a
-          href="https://github.com/peimanfarajnezhad/tv-maze-explorer"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-        >
-          <Github class="size-5" />
-          GitHub
-        </a>
       </div>
     </div>
   </header>

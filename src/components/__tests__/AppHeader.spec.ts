@@ -62,4 +62,13 @@ describe('AppHeader', () => {
     const mobileNavs = screen.getAllByRole('navigation', { name: 'Main mobile' })
     expect(mobileNavs.length).toBeGreaterThanOrEqual(1)
   })
+
+  it('renders the theme toggle button', async () => {
+    await renderWithProviders(AppHeader, {
+      useRouter: true,
+      initialRoute: '/',
+    })
+    const themeButtons = screen.getAllByRole('button', { name: /theme/i })
+    expect(themeButtons.length).toBeGreaterThanOrEqual(1)
+  })
 })
