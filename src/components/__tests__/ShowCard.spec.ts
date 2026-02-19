@@ -75,8 +75,6 @@ describe('ShowCard', () => {
       name: 'Test Show',
     })
     expect(img).toHaveAttribute('src', 'https://example.com/poster.jpg')
-    expect(
-      within(container as HTMLElement).queryByText('No image'),
-    ).not.toBeInTheDocument()
+    expect(within(container as HTMLElement).queryByText('No image')).not.toBeInTheDocument()
   })
 })

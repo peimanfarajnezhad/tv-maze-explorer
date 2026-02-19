@@ -73,7 +73,7 @@ export function useGenreCarousels(): UseGenreCarouselsReturn {
     () => store.totalShowsStored,
     () => {
       debouncedLoad()
-    }
+    },
   )
 
   return { genres, carousels, isLoading, load }

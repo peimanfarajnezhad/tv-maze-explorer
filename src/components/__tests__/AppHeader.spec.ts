@@ -7,7 +7,7 @@ import AppHeader from '../layout/AppHeader.vue'
 describe('AppHeader', () => {
   beforeEach(async () => {
     const pinia = (await import('pinia')).createPinia()
-      ; (await import('pinia')).setActivePinia(pinia)
+    ;(await import('pinia')).setActivePinia(pinia)
   })
 
   it('renders app title as home link', async () => {

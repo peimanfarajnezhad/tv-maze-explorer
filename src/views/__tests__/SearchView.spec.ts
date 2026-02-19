@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
 import { db } from '@/db'
-import { screen, renderWithProviders, waitFor, makeShow, clearDb, flushPromises } from '@/test-utils'
+import {
+  screen,
+  renderWithProviders,
+  waitFor,
+  makeShow,
+  clearDb,
+  flushPromises,
+} from '@/test-utils'
 
 import SearchView from '../SearchView.vue'
 
@@ -54,37 +61,36 @@ describe('SearchView', () => {
     )
   })
 
-  it(
-    'renders show cards when results match',
-    async () => {
-      await db.shows.bulkPut([
-        makeShow(1, 'Match Show', {
-          genres: ['Drama'],
-          image: { medium: 'https://example.com/match.jpg', original: 'https://example.com/match-orig.jpg' },
-        }),
-        makeShow(2, 'Other', { genres: ['Comedy'] }),
-      ])
-
-      await renderWithProviders(SearchView, {
-        useRouter: true,
-        initialRoute: '/search?genre=drama',
-        initialStoreState: { showSync: { status: 'completed', totalShowsStored: 2 } },
-      })
-      await flushPromises()
-
-      await waitFor(
-        () => {
-          const imgs = screen.getAllByRole('img', { name: 'Match Show' })
-          expect(imgs.length).toBeGreaterThanOrEqual(1)
+  it('renders show cards when results match', async () => {
+    await db.shows.bulkPut([
+      makeShow(1, 'Match Show', {
+        genres: ['Drama'],
+        image: {
+          medium: 'https://example.com/match.jpg',
+          original: 'https://example.com/match-orig.jpg',
         },
-        { timeout: 3000 },
-      )
+      }),
+      makeShow(2, 'Other', { genres: ['Comedy'] }),
+    ])
+
+    await renderWithProviders(SearchView, {
+      useRouter: true,
+      initialRoute: '/search?genre=drama',
+      initialStoreState: { showSync: { status: 'completed', totalShowsStored: 2 } },
     })
+    await flushPromises()
+
+    await waitFor(
+      () => {
+        const imgs = screen.getAllByRole('img', { name: 'Match Show' })
+        expect(imgs.length).toBeGreaterThanOrEqual(1)
+      },
+      { timeout: 3000 },
+    )
+  })
 
   it('shows "No shows match your filters" when no results', async () => {
-    await db.shows.bulkPut([
-      makeShow(1, 'Show A', { genres: ['Drama'] }),
-    ])
+    await db.shows.bulkPut([makeShow(1, 'Show A', { genres: ['Drama'] })])
 
     await renderWithProviders(SearchView, {
       useRouter: true,

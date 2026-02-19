@@ -81,5 +81,3 @@ export interface TvmazeShow {
   _links: TvmazeShowLinks
   _embedded?: TvmazeShowEmbedded
 }
-
-

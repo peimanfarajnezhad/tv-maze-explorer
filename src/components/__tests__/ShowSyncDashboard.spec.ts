@@ -14,7 +14,9 @@ describe('ShowSyncDashboard', () => {
 
   it('renders heading "Show Database Sync"', async () => {
     await renderWithProviders(ShowSyncDashboard, {})
-    expect(screen.getByRole('heading', { name: 'Show Database Sync', level: 2 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Show Database Sync', level: 2 }),
+    ).toBeInTheDocument()
   })
 
   it('when status is idle, does not show progress bar or status details', async () => {

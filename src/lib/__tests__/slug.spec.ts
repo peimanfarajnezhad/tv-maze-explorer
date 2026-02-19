@@ -63,19 +63,13 @@ describe('slug', () => {
 
     it('returns exact genre from knownGenres when slug matches', () => {
       const knownGenres = ['Science-Fiction', 'Soap Opera', 'Reality']
-      expect(slugToGenreDisplayName('science-fiction', knownGenres)).toBe(
-        'Science-Fiction',
-      )
-      expect(slugToGenreDisplayName('soap-opera', knownGenres)).toBe(
-        'Soap Opera',
-      )
+      expect(slugToGenreDisplayName('science-fiction', knownGenres)).toBe('Science-Fiction')
+      expect(slugToGenreDisplayName('soap-opera', knownGenres)).toBe('Soap Opera')
     })
 
     it('falls back to title-case when slug does not match any known genre', () => {
       const knownGenres = ['Drama', 'Comedy']
-      expect(slugToGenreDisplayName('science-fiction', knownGenres)).toBe(
-        'Science Fiction',
-      )
+      expect(slugToGenreDisplayName('science-fiction', knownGenres)).toBe('Science Fiction')
     })
 
     it('handles single-word slug', () => {

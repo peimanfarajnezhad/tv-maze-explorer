@@ -30,9 +30,7 @@ describe('ShowDetailView', () => {
   })
 
   it('renders main and skeleton while loading', async () => {
-    vi.mocked(tvmaze.getShow).mockImplementation(
-      () => new Promise<never>(() => {}),
-    )
+    vi.mocked(tvmaze.getShow).mockImplementation(() => new Promise<never>(() => {}))
 
     await renderWithProviders(ShowDetailView, {
       useRouter: true,
@@ -75,10 +73,7 @@ describe('ShowDetailView', () => {
           makeCast(11, 'Aaron Paul', 'Jesse Pinkman'),
         ],
         crew: [makeCrew(20, 'Vince Gilligan', 'Creator')],
-        seasons: [
-          makeSeason(100, 1),
-          makeSeason(101, 2),
-        ],
+        seasons: [makeSeason(100, 1), makeSeason(101, 2)],
         episodes: [
           makeEpisode(201, 1, 1, 'Pilot'),
           makeEpisode(202, 1, 2, 'Cats in the Bag'),
@@ -103,7 +98,9 @@ describe('ShowDetailView', () => {
         expect(screen.getByText('Walter White')).toBeInTheDocument()
         expect(screen.getByRole('heading', { name: 'Crew', level: 2 })).toBeInTheDocument()
         expect(screen.getByText('Vince Gilligan')).toBeInTheDocument()
-        expect(screen.getByRole('heading', { name: 'Seasons & Episodes', level: 2 })).toBeInTheDocument()
+        expect(
+          screen.getByRole('heading', { name: 'Seasons & Episodes', level: 2 }),
+        ).toBeInTheDocument()
         expect(screen.getByText('Pilot')).toBeInTheDocument()
       },
       { timeout: 3000 },

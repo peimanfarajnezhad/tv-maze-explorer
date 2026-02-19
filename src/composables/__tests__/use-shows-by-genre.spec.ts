@@ -109,9 +109,7 @@ describe('useShowsByGenre', () => {
 
     const routeId = ref(genreNameToSlug('Drama'))
     const searchQuery = ref('')
-    const { result } = mountComposable(() =>
-      useShowsByGenre(routeId, { searchQuery }),
-    )
+    const { result } = mountComposable(() => useShowsByGenre(routeId, { searchQuery }))
     await flushPromises()
     await waitUntil(() => !result.isLoading.value)
 
@@ -134,9 +132,7 @@ describe('useShowsByGenre', () => {
 
     const routeId = ref(genreNameToSlug('Drama'))
     const sortField = ref<'id' | 'rating' | 'premiered'>('id')
-    const { result } = mountComposable(() =>
-      useShowsByGenre(routeId, { sortField }),
-    )
+    const { result } = mountComposable(() => useShowsByGenre(routeId, { sortField }))
     await flushPromises()
     await waitUntil(() => !result.isLoading.value)
 
@@ -152,7 +148,11 @@ describe('useShowsByGenre', () => {
     await flushPromises()
     await waitUntil(() => !result.isLoading.value)
 
-    expect(result.shows.value.map((s) => s.premiered)).toEqual(['2022-01-01', '2021-01-01', '2020-01-01'])
+    expect(result.shows.value.map((s) => s.premiered)).toEqual([
+      '2022-01-01',
+      '2021-01-01',
+      '2020-01-01',
+    ])
   })
 
   it('reloads when routeId changes', async () => {

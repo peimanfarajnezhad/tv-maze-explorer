@@ -27,11 +27,7 @@ defineProps<{
     </div>
     <div class="min-w-0 max-w-[100px] sm:max-w-[120px]">
       <p class="truncate text-sm font-medium" :title="name">{{ name }}</p>
-      <p
-        v-if="subtitle"
-        class="truncate text-xs text-muted-foreground"
-        :title="subtitle"
-      >
+      <p v-if="subtitle" class="truncate text-xs text-muted-foreground" :title="subtitle">
         {{ subtitle }}
       </p>
     </div>

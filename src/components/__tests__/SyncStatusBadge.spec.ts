@@ -6,7 +6,6 @@ import { useShowSyncStore } from '@/stores/show-sync'
 import SyncStatusBadge from '../layout/SyncStatusBadge.vue'
 
 describe('SyncStatusBadge', () => {
-
   it('renders sync status trigger button', async () => {
     await renderWithProviders(SyncStatusBadge, {})
     const buttons = screen.getAllByRole('button', { name: 'Show sync status' })

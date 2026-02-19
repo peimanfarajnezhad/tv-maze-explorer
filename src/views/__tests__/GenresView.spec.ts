@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
 import { db } from '@/db'
-import { screen, renderWithProviders, waitFor, makeShow, clearDb, flushPromises } from '@/test-utils'
+import {
+  screen,
+  renderWithProviders,
+  waitFor,
+  makeShow,
+  clearDb,
+  flushPromises,
+} from '@/test-utils'
 
 import GenresView from '../GenresView.vue'
 

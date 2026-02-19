@@ -7,13 +7,7 @@ import { ref, watch, type Ref } from 'vue'
 
 import { db } from '@/db'
 import { getShow } from '@/services/tvmaze'
-import type {
-  TvmazeShow,
-  TvmazeCast,
-  TvmazeCrew,
-  TvmazeSeason,
-  TvmazeEpisode,
-} from '@/types'
+import type { TvmazeShow, TvmazeCast, TvmazeCrew, TvmazeSeason, TvmazeEpisode } from '@/types'
 
 export interface UseShowDetailReturn {
   show: Ref<TvmazeShow | null>
@@ -31,13 +25,10 @@ function pickBackgroundImage(show: TvmazeShow): string | null {
   const images = show._embedded?.images
   if (images?.length) {
     const background = images.find((img) => img.type === 'background')
-    const url =
-      background?.resolutions?.original?.url ??
-      background?.resolutions?.medium?.url
+    const url = background?.resolutions?.original?.url ?? background?.resolutions?.medium?.url
     if (url) return url
     const poster = images.find((img) => img.type === 'poster')
-    const posterUrl =
-      poster?.resolutions?.original?.url ?? poster?.resolutions?.medium?.url
+    const posterUrl = poster?.resolutions?.original?.url ?? poster?.resolutions?.medium?.url
     if (posterUrl) return posterUrl
   }
   return show.image?.original ?? show.image?.medium ?? null
@@ -96,9 +87,7 @@ export function useShowDetail(showId: Ref<string | number>): UseShowDetailReturn
       cast.value = full._embedded?.cast ?? []
       crew.value = full._embedded?.crew ?? []
       seasons.value = full._embedded?.seasons ?? []
-      episodesBySeason.value = groupEpisodesBySeason(
-        full._embedded?.episodes ?? [],
-      )
+      episodesBySeason.value = groupEpisodesBySeason(full._embedded?.episodes ?? [])
       backgroundImage.value = pickBackgroundImage(full)
     } catch (e) {
       if (!show.value) {
