@@ -11,7 +11,15 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 
 import { db } from '@/db'
 import { routes } from '@/router'
-import type { TvmazeShow } from '@/types'
+import type {
+  TvmazeShow,
+  TvmazeCast,
+  TvmazeCrew,
+  TvmazeSeason,
+  TvmazeEpisode,
+  TvmazePerson,
+  TvmazeCharacter,
+} from '@/types'
 import { useShowSyncStore, type SyncStatus } from '@/stores/show-sync'
 
 // --- Data & DB helpers ---
@@ -48,6 +56,121 @@ export function makeShow(
     _links: { self: { href: '' } },
     ...overrides,
   } as TvmazeShow
+}
+
+function makePerson(
+  id: number,
+  name: string,
+  overrides: Partial<TvmazePerson> = {},
+): TvmazePerson {
+  return {
+    id,
+    name,
+    url: `https://example.com/people/${id}`,
+    country: null,
+    birthday: null,
+    deathday: null,
+    gender: 'Male',
+    image: null,
+    updated: 1,
+    _links: { self: { href: '' } },
+    ...overrides,
+  }
+}
+
+function makeCharacter(
+  id: number,
+  name: string,
+  overrides: Partial<TvmazeCharacter> = {},
+): TvmazeCharacter {
+  return {
+    id,
+    name,
+    url: `https://example.com/characters/${id}`,
+    image: null,
+    _links: { self: { href: '' } },
+    ...overrides,
+  }
+}
+
+/** Minimal TvmazeCast for tests */
+export function makeCast(
+  personId: number,
+  personName: string,
+  characterName: string,
+  overrides: Partial<TvmazeCast> = {},
+): TvmazeCast {
+  return {
+    person: makePerson(personId, personName),
+    character: makeCharacter(personId, characterName),
+    self: false,
+    voice: false,
+    ...overrides,
+  }
+}
+
+/** Minimal TvmazeCrew for tests */
+export function makeCrew(
+  personId: number,
+  personName: string,
+  type: string,
+  overrides: Partial<TvmazeCrew> = {},
+): TvmazeCrew {
+  return {
+    type,
+    person: makePerson(personId, personName),
+    ...overrides,
+  }
+}
+
+/** Minimal TvmazeSeason for tests */
+export function makeSeason(
+  id: number,
+  number: number,
+  overrides: Partial<TvmazeSeason> = {},
+): TvmazeSeason {
+  return {
+    id,
+    url: `https://example.com/seasons/${id}`,
+    number,
+    name: `Season ${number}`,
+    episodeOrder: 10,
+    premiereDate: null,
+    endDate: null,
+    network: null,
+    webChannel: null,
+    image: null,
+    summary: null,
+    _links: { self: { href: '' } },
+    ...overrides,
+  }
+}
+
+/** Minimal TvmazeEpisode for tests */
+export function makeEpisode(
+  id: number,
+  season: number,
+  number: number,
+  name: string,
+  overrides: Partial<TvmazeEpisode> = {},
+): TvmazeEpisode {
+  return {
+    id,
+    url: `https://example.com/episodes/${id}`,
+    name,
+    season,
+    number,
+    type: 'regular',
+    airdate: null,
+    airtime: null,
+    airstamp: null,
+    runtime: null,
+    rating: { average: null },
+    image: null,
+    summary: null,
+    _links: { self: { href: '' }, show: { href: '', name: '' } },
+    ...overrides,
+  }
 }
 
 export async function clearDb(): Promise<void> {

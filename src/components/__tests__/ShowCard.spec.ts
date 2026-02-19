@@ -3,7 +3,19 @@ import { screen, within, renderWithProviders, makeShow } from '@/test-utils'
 
 import ShowCard from '../ShowCard.vue'
 
+const renderOptions = { useRouter: true }
+
 describe('ShowCard', () => {
+  it('renders a link to show-detail with show id', async () => {
+    const show = makeShow(42, 'Test Show')
+    await renderWithProviders(ShowCard, {
+      props: { show },
+      ...renderOptions,
+    })
+    const link = screen.getByRole('link')
+    expect(link).toHaveAttribute('href', '/shows/42')
+  })
+
   it('renders show name as image alt text when show has image', async () => {
     const show = makeShow(1, 'Breaking Bad', {
       image: {
@@ -13,6 +25,7 @@ describe('ShowCard', () => {
     })
     await renderWithProviders(ShowCard, {
       props: { show },
+      ...renderOptions,
     })
     const img = screen.getByRole('img', { name: 'Breaking Bad' })
     expect(img).toBeInTheDocument()
@@ -22,6 +35,7 @@ describe('ShowCard', () => {
     const show = makeShow(1, 'Test Show', { rating: { average: 9.2 } })
     await renderWithProviders(ShowCard, {
       props: { show },
+      ...renderOptions,
     })
     expect(screen.getByText('9.2')).toBeInTheDocument()
   })
@@ -30,6 +44,7 @@ describe('ShowCard', () => {
     const show = makeShow(1, 'Test Show', { image: null })
     const { container } = await renderWithProviders(ShowCard, {
       props: { show },
+      ...renderOptions,
     })
     expect(within(container as HTMLElement).getByText('No image')).toBeInTheDocument()
   })
@@ -40,6 +55,7 @@ describe('ShowCard', () => {
     })
     await renderWithProviders(ShowCard, {
       props: { show },
+      ...renderOptions,
     })
     expect(screen.getByText('—')).toBeInTheDocument()
   })
@@ -53,6 +69,7 @@ describe('ShowCard', () => {
     })
     const { container } = await renderWithProviders(ShowCard, {
       props: { show },
+      ...renderOptions,
     })
     const img = within(container as HTMLElement).getByRole('img', {
       name: 'Test Show',

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getShows, getShow, getSeasonEpisodes } from '../tvmaze'
-import type { TvmazeShow, TvmazeEpisode } from '@/types'
+import { getShows, getShow } from '../tvmaze'
+import type { TvmazeShow } from '@/types'
 
 const mockGet = vi.fn()
 
@@ -48,13 +48,15 @@ describe('getShows()', () => {
 })
 
 describe('getShow()', () => {
-  it('fetches a single show with crew and cast embeds', async () => {
+  it('fetches a single show with all embeds (images, seasons, episodes, crew, cast)', async () => {
     const show = { id: 42, name: 'Test' } as unknown as TvmazeShow
     mockGet.mockResolvedValueOnce(show)
 
     const result = await getShow(42)
 
-    expect(mockGet).toHaveBeenCalledWith('/shows/42?embed[]=crew&embed[]=cast')
+    expect(mockGet).toHaveBeenCalledWith(
+      '/shows/42?embed[]=images&embed[]=seasons&embed[]=episodes&embed[]=crew&embed[]=cast',
+    )
     expect(result).toBe(show)
   })
 
@@ -62,23 +64,5 @@ describe('getShow()', () => {
     mockGet.mockRejectedValueOnce(new Error('not found'))
 
     await expect(getShow(999)).rejects.toThrow('not found')
-  })
-})
-
-describe('getSeasonEpisodes()', () => {
-  it('fetches episodes for the given season id', async () => {
-    const episodes = [{ id: 1, name: 'Pilot' }] as unknown as TvmazeEpisode[]
-    mockGet.mockResolvedValueOnce(episodes)
-
-    const result = await getSeasonEpisodes(7)
-
-    expect(mockGet).toHaveBeenCalledWith('/seasons/7/episodes')
-    expect(result).toEqual(episodes)
-  })
-
-  it('propagates errors from the api client', async () => {
-    mockGet.mockRejectedValueOnce(new Error('server error'))
-
-    await expect(getSeasonEpisodes(1)).rejects.toThrow('server error')
   })
 })

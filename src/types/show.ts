@@ -5,9 +5,16 @@
  * @see https://api.tvmaze.com/shows/:id?embed[]=crew&embed[]=cast
  */
 
-import type { TvmazeImage, TvmazeCountry, TvmazeLink, TvmazeRating } from './common'
+import type {
+  TvmazeImage,
+  TvmazeCountry,
+  TvmazeLink,
+  TvmazeRating,
+  TvmazeShowImage,
+} from './common'
 import type { TvmazeCast, TvmazeCrew } from './person'
 import type { TvmazeSeason } from './season'
+import type { TvmazeEpisode } from './episode'
 
 export interface TvmazeNetwork {
   id: number
@@ -44,6 +51,8 @@ export interface TvmazeShowEmbedded {
   cast?: TvmazeCast[]
   crew?: TvmazeCrew[]
   seasons?: TvmazeSeason[]
+  episodes?: TvmazeEpisode[]
+  images?: TvmazeShowImage[]
 }
 
 export interface TvmazeShow {

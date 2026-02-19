@@ -21,6 +21,11 @@ export const routes = [
     name: 'genre-detail',
     component: () => import('@/views/GenreView.vue'),
   },
+  {
+    path: '/shows/:id(\\d+)',
+    name: 'show-detail',
+    component: () => import('@/views/ShowDetailView.vue'),
+  },
 ] as const
 
 const router = createRouter({

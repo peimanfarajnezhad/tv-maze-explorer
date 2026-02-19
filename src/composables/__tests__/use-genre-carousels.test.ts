@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGenreCarousels } from '../use-genre-carousels'
-import { clearDb, makeShow, mountComposable, flushPromises } from '@/test-utils'
+import { clearDb, makeShow, mountComposable, flushPromises, waitUntil } from '@/test-utils'
 import { db } from '@/db'
 import { useShowSyncStore } from '@/stores/show-sync'
 
@@ -82,7 +82,7 @@ describe('useGenreCarousels', () => {
       makeShow(2, 'Second', { genres: ['Comedy'] }),
     ])
     store.$patch({ totalShowsStored: 2 })
-    await flushPromises()
+    await waitUntil(() => result.carousels.value.length === 2)
 
     expect(result.genres.value).toEqual(['Comedy', 'Drama'])
     expect(result.carousels.value).toHaveLength(2)
