@@ -58,11 +58,7 @@ export function makeShow(
   } as TvmazeShow
 }
 
-function makePerson(
-  id: number,
-  name: string,
-  overrides: Partial<TvmazePerson> = {},
-): TvmazePerson {
+function makePerson(id: number, name: string, overrides: Partial<TvmazePerson> = {}): TvmazePerson {
   return {
     id,
     name,
@@ -228,7 +224,12 @@ export async function renderWithProviders(
   component: Component,
   options: ComponentTestOptions = {},
 ): Promise<ReturnType<typeof render>> {
-  const { useRouter: withRouter = false, initialRoute = '/', initialStoreState, ...renderOptions } = options
+  const {
+    useRouter: withRouter = false,
+    initialRoute = '/',
+    initialStoreState,
+    ...renderOptions
+  } = options
 
   const pinia = createPinia()
   setActivePinia(pinia)

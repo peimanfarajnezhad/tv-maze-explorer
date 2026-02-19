@@ -56,9 +56,7 @@ describe('ShowSyncEngine', () => {
         isCompleted: false,
         isPaused: false,
       }
-      mockGetSyncMeta
-        .mockResolvedValueOnce(undefined)
-        .mockResolvedValue(initialMeta)
+      mockGetSyncMeta.mockResolvedValueOnce(undefined).mockResolvedValue(initialMeta)
       mockGetShowCount.mockResolvedValue(0)
       mockGetShows.mockResolvedValue([])
 
@@ -97,9 +95,7 @@ describe('ShowSyncEngine', () => {
           isCompleted: false,
           isPaused: false,
         })
-      mockGetShows
-        .mockResolvedValueOnce(page0Shows)
-        .mockResolvedValueOnce([])
+      mockGetShows.mockResolvedValueOnce(page0Shows).mockResolvedValueOnce([])
 
       const engine = new ShowSyncEngine(callbacks)
       await engine.start()
@@ -136,15 +132,14 @@ describe('ShowSyncEngine', () => {
     })
 
     it('calls onError when bulkPutShows throws', async () => {
-      mockGetSyncMeta
-        .mockResolvedValue({
-          id: 'showSync',
-          lastCompletedPage: -1,
-          totalShowsStored: 0,
-          estimatedTotalPages: 1,
-          isCompleted: false,
-          isPaused: false,
-        })
+      mockGetSyncMeta.mockResolvedValue({
+        id: 'showSync',
+        lastCompletedPage: -1,
+        totalShowsStored: 0,
+        estimatedTotalPages: 1,
+        isCompleted: false,
+        isPaused: false,
+      })
       mockGetShows.mockResolvedValueOnce([makeShow(1, 'A')])
       mockBulkPutShows.mockRejectedValueOnce(new Error('IndexedDB failed'))
 

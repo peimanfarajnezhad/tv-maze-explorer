@@ -17,16 +17,14 @@ export function useTheme() {
   function cycle() {
     const order = ['light', 'dark', 'auto'] as const
     const idx = order.indexOf(mode.store.value as (typeof order)[number])
-    mode.store.value = order[(idx + 1) % order.length]
+    const next = order[(idx + 1) % order.length]
+    mode.store.value = next ?? order[0]
   }
 
   watchEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]')
     if (meta) {
-      meta.setAttribute(
-        'content',
-        mode.value === 'dark' ? THEME_COLOR_DARK : THEME_COLOR_LIGHT,
-      )
+      meta.setAttribute('content', mode.value === 'dark' ? THEME_COLOR_DARK : THEME_COLOR_LIGHT)
     }
   })
 

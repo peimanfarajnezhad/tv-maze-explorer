@@ -72,5 +72,4 @@ describe('SearchModal', () => {
       expect(within(dialog).queryByRole('alert')).not.toBeInTheDocument()
     })
   })
-
 })

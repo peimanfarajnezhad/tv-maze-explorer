@@ -6,13 +6,7 @@
 import { ApiError, ApiRateLimitError } from './api-client'
 import { getShows } from './tvmaze'
 import type { TvmazeShow } from '@/types'
-import {
-  getSyncMeta,
-  updateSyncMeta,
-  bulkPutShows,
-  getShowCount,
-  type SyncMeta,
-} from '@/db'
+import { getSyncMeta, updateSyncMeta, bulkPutShows, getShowCount, type SyncMeta } from '@/db'
 import { RateLimiter } from './rate-limiter'
 
 const RATE_LIMIT_MAX_REQUESTS = 20
@@ -109,7 +103,7 @@ export class ShowSyncEngine {
   async #fetchPageWithRetry(page: number): Promise<TvmazeShow[]> {
     let backoff429Ms = BACKOFF_429_INITIAL_MS
 
-    for (; ;) {
+    for (;;) {
       if (this.#stopped) throw new Error('Stopped')
       await this.#rateLimiter.acquire()
       try {
@@ -124,14 +118,16 @@ export class ShowSyncEngine {
         if (err instanceof ApiError && err.status === 404) {
           return []
         }
-        const status = err && typeof err === 'object' && 'status' in err ? (err as { status: number }).status : 0
+        const status =
+          err && typeof err === 'object' && 'status' in err ? (err as { status: number }).status : 0
         if (status >= 400 && status < 500) {
           throw err
         }
         const isTransient =
           status === 0 ||
           isRetryableStatus(status) ||
-          (err instanceof TypeError && (err.message.includes('fetch') || err.message.includes('network')))
+          (err instanceof TypeError &&
+            (err.message.includes('fetch') || err.message.includes('network')))
         if (!isTransient) throw err
         let lastErr: unknown = err
         for (let i = 0; i < MAX_RETRIES_TRANSIENT; i++) {

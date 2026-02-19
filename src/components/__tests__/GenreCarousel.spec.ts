@@ -8,7 +8,7 @@ import GenreCarousel from '../GenreCarousel.vue'
 describe('GenreCarousel', () => {
   beforeEach(async () => {
     const pinia = (await import('pinia')).createPinia()
-      ; (await import('pinia')).setActivePinia(pinia)
+    ;(await import('pinia')).setActivePinia(pinia)
   })
 
   it('renders genre heading', async () => {

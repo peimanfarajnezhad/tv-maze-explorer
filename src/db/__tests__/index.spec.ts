@@ -1,12 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  db,
-  SYNC_META_ID,
-  getSyncMeta,
-  updateSyncMeta,
-  bulkPutShows,
-  getShowCount,
-} from '../index'
+import { db, SYNC_META_ID, getSyncMeta, updateSyncMeta, bulkPutShows, getShowCount } from '../index'
 import { makeShow } from '@/test-utils'
 
 describe('db', () => {
@@ -81,10 +74,7 @@ describe('db', () => {
     })
 
     it('stores shows and getShowCount returns correct count', async () => {
-      await bulkPutShows([
-        makeShow(1, 'Show A'),
-        makeShow(2, 'Show B'),
-      ])
+      await bulkPutShows([makeShow(1, 'Show A'), makeShow(2, 'Show B')])
       const count = await getShowCount()
       expect(count).toBe(2)
     })

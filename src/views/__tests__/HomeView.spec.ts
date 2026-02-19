@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 import { db } from '@/db'
-import { screen, renderWithProviders, waitFor, makeShow, clearDb, flushPromises, mockEmblaCarousel } from '@/test-utils'
+import {
+  screen,
+  renderWithProviders,
+  waitFor,
+  makeShow,
+  clearDb,
+  flushPromises,
+  mockEmblaCarousel,
+} from '@/test-utils'
 
 vi.mock('@/components/ui/carousel', () => mockEmblaCarousel())
 

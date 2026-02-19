@@ -22,10 +22,7 @@ export function genreNameToSlug(name: string): string {
  * e.g. "science-fiction" → "Science Fiction"
  * When knownGenres is provided, returns the exact genre string from DB if the slug matches.
  */
-export function slugToGenreDisplayName(
-  slug: string,
-  knownGenres?: string[]
-): string {
+export function slugToGenreDisplayName(slug: string, knownGenres?: string[]): string {
   if (knownGenres?.length) {
     const found = knownGenres.find((g) => genreNameToSlug(g) === slug)
     if (found) return found

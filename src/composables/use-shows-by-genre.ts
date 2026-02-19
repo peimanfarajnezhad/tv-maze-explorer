@@ -124,15 +124,12 @@ export function useShowsByGenre(
         const all = await collection.toArray()
         const sorted =
           sort === 'rating'
-            ? [...all].sort(
-              (a, b) =>
-                (b.rating?.average ?? -1) - (a.rating?.average ?? -1),
-            )
+            ? [...all].sort((a, b) => (b.rating?.average ?? -1) - (a.rating?.average ?? -1))
             : [...all].sort((a, b) => {
-              const ad = a.premiered ?? ''
-              const bd = b.premiered ?? ''
-              return bd.localeCompare(ad)
-            })
+                const ad = a.premiered ?? ''
+                const bd = b.premiered ?? ''
+                return bd.localeCompare(ad)
+              })
         const page = sorted.slice(offset, offset + PAGE_SIZE)
         if (append) {
           shows.value = [...shows.value, ...page]

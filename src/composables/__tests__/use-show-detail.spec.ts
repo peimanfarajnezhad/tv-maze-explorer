@@ -43,10 +43,7 @@ describe('useShowDetail', () => {
         cast: [makeCast(10, 'Actor One', 'Character A')],
         crew: [makeCrew(20, 'Director', 'Director')],
         seasons: [makeSeason(100, 1)],
-        episodes: [
-          makeEpisode(201, 1, 1, 'Pilot'),
-          makeEpisode(202, 1, 2, 'Episode 2'),
-        ],
+        episodes: [makeEpisode(201, 1, 1, 'Pilot'), makeEpisode(202, 1, 2, 'Episode 2')],
       },
     }
     vi.mocked(tvmaze.getShow).mockResolvedValueOnce(fullShow)

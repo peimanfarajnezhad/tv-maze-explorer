@@ -9,13 +9,7 @@ import { defineStore } from 'pinia'
 import { getSyncMeta, updateSyncMeta } from '@/db'
 import { ShowSyncEngine } from '@/services/show-sync-engine'
 
-export type SyncStatus =
-  | 'idle'
-  | 'probing'
-  | 'syncing'
-  | 'paused'
-  | 'completed'
-  | 'error'
+export type SyncStatus = 'idle' | 'probing' | 'syncing' | 'paused' | 'completed' | 'error'
 
 export const useShowSyncStore = defineStore('showSync', () => {
   const status = ref<SyncStatus>('idle')
