@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import SearchModal from './SearchModal.vue'
 import SyncStatusBadge from './SyncStatusBadge.vue'
 import { Menu, X, Github } from 'lucide-vue-next'
+import iconUrl from '@/assets/icon.png'
 
 const route = useRoute()
 const mobileMenuOpen = ref(false)
@@ -40,9 +41,10 @@ watch(
     <div class="container mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
       <RouterLink
         :to="{ name: 'home' }"
-        class="shrink-0 font-semibold text-foreground no-underline hover:underline"
+        class="flex shrink-0 items-center gap-2 font-semibold text-foreground no-underline hover:underline"
       >
-        TV Maze Explorer
+        <img :src="iconUrl" alt="" class="size-7 rounded" aria-hidden="true" />
+        <span class="hidden sm:inline">TV Maze Explorer</span>
       </RouterLink>
 
       <nav class="hidden items-center gap-6 md:flex" aria-label="Main">
