@@ -5,6 +5,7 @@
 
 import { ref, watch, onMounted } from 'vue'
 import type { Ref } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import { db } from '@/db'
 import { arraysEqual } from '@/lib/arrays'
@@ -43,10 +44,12 @@ export function useAllGenres(): UseAllGenresReturn {
     load()
   })
 
+  const debouncedLoad = useDebounceFn(load, 500)
+
   watch(
     () => store.totalShowsStored,
     () => {
-      load()
+      debouncedLoad()
     },
   )
 

@@ -105,4 +105,27 @@ describe('useGenreCarousels', () => {
 
     expect(result.genres.value).toEqual(['Comedy', 'Drama'])
   })
+
+  it('does not reassign genres/carousels when totalShowsStored changes but DB content is unchanged', async () => {
+    await db.shows.bulkPut([
+      makeShow(1, 'First', { genres: ['Drama'] }),
+      makeShow(2, 'Second', { genres: ['Comedy'] }),
+    ])
+
+    const { result } = mountComposable(() => useGenreCarousels())
+    await flushPromises()
+
+    const genresRefBefore = result.genres.value
+    const carouselsRefBefore = result.carousels.value
+    expect(genresRefBefore).toEqual(['Comedy', 'Drama'])
+    expect(carouselsRefBefore).toHaveLength(2)
+
+    const store = useShowSyncStore()
+    store.$patch({ totalShowsStored: 2 })
+    await new Promise((r) => setTimeout(r, 350))
+    await flushPromises()
+
+    expect(result.genres.value).toBe(genresRefBefore)
+    expect(result.carousels.value).toBe(carouselsRefBefore)
+  })
 })
