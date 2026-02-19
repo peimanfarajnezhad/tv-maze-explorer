@@ -74,7 +74,9 @@ watch(
 
         <SearchModal />
         <a
-          href="#"
+          href="https://github.com/peimanfarajnezhad/tv-maze-explorer"
+          target="_blank"
+          rel="noopener noreferrer"
           class="hidden rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:inline-flex"
           aria-label="GitHub"
         >
@@ -107,7 +109,9 @@ watch(
           </RouterLink>
         </nav>
         <a
-          href="#"
+          href="https://github.com/peimanfarajnezhad/tv-maze-explorer"
+          target="_blank"
+          rel="noopener noreferrer"
           class="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <Github class="size-5" />
