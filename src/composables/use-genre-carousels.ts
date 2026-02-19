@@ -5,9 +5,11 @@
 
 import { ref, watch, onMounted } from 'vue'
 import type { Ref } from 'vue'
+import { useDebounceFn } from '@vueuse/core'
 
 import { db } from '@/db'
 import type { TvmazeShow } from '@/types'
+import { arraysEqual, carouselsEqual } from '@/lib/arrays'
 import { useShowSyncStore } from '@/stores/show-sync'
 
 const CAROUSEL_SIZE = 15
@@ -43,14 +45,19 @@ export function useGenreCarousels(): UseGenreCarouselsReturn {
         }
       }
       const sortedGenres = Array.from(byGenre.keys()).sort()
-      genres.value = sortedGenres
+      if (!arraysEqual(sortedGenres, genres.value)) {
+        genres.value = sortedGenres
+      }
 
       const rating = (s: TvmazeShow) => s.rating?.average ?? -1
-      carousels.value = sortedGenres.map((genre) => {
+      const nextCarousels = sortedGenres.map((genre) => {
         const list = byGenre.get(genre) ?? []
         const sorted = [...list].sort((a, b) => rating(b) - rating(a))
         return { genre, shows: sorted.slice(0, CAROUSEL_SIZE) }
       })
+      if (!carouselsEqual(nextCarousels, carousels.value)) {
+        carousels.value = nextCarousels
+      }
     } finally {
       isLoading.value = false
     }
@@ -60,10 +67,12 @@ export function useGenreCarousels(): UseGenreCarouselsReturn {
     load()
   })
 
+  const debouncedLoad = useDebounceFn(load, 500)
+
   watch(
     () => store.totalShowsStored,
     () => {
-      load()
+      debouncedLoad()
     }
   )
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { arraysEqual } from '../arrays'
+import { arraysEqual, carouselsEqual, type CarouselLike } from '../arrays'
 
 describe('arraysEqual', () => {
   it('returns true for two empty arrays', () => {
@@ -27,5 +27,43 @@ describe('arraysEqual', () => {
   it('returns false when one is a prefix of the other', () => {
     expect(arraysEqual(['a', 'b'], ['a', 'b', 'c'])).toBe(false)
     expect(arraysEqual(['a', 'b', 'c'], ['a', 'b'])).toBe(false)
+  })
+})
+
+describe('carouselsEqual', () => {
+  it('returns true for two empty arrays', () => {
+    expect(carouselsEqual([], [])).toBe(true)
+  })
+
+  it('returns true when carousels have same genres and show ids in order', () => {
+    const a: CarouselLike[] = [
+      { genre: 'Drama', shows: [{ id: 1 }, { id: 2 }] },
+      { genre: 'Comedy', shows: [{ id: 3 }] },
+    ]
+    const b: CarouselLike[] = [
+      { genre: 'Drama', shows: [{ id: 1 }, { id: 2 }] },
+      { genre: 'Comedy', shows: [{ id: 3 }] },
+    ]
+    expect(carouselsEqual(a, b)).toBe(true)
+  })
+
+  it('returns false when length differs', () => {
+    const a: CarouselLike[] = [{ genre: 'Drama', shows: [{ id: 1 }] }]
+    const b: CarouselLike[] = []
+    expect(carouselsEqual(a, b)).toBe(false)
+    expect(carouselsEqual(b, a)).toBe(false)
+  })
+
+  it('returns false when genre name differs', () => {
+    const a: CarouselLike[] = [{ genre: 'Drama', shows: [{ id: 1 }] }]
+    const b: CarouselLike[] = [{ genre: 'Comedy', shows: [{ id: 1 }] }]
+    expect(carouselsEqual(a, b)).toBe(false)
+  })
+
+  it('returns false when show ids differ or order differs', () => {
+    const base: CarouselLike[] = [{ genre: 'Drama', shows: [{ id: 1 }, { id: 2 }] }]
+    expect(carouselsEqual(base, [{ genre: 'Drama', shows: [{ id: 1 }] }])).toBe(false)
+    expect(carouselsEqual(base, [{ genre: 'Drama', shows: [{ id: 2 }, { id: 1 }] }])).toBe(false)
+    expect(carouselsEqual(base, [{ genre: 'Drama', shows: [{ id: 1 }, { id: 3 }] }])).toBe(false)
   })
 })
