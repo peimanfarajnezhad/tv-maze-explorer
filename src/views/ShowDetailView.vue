@@ -27,8 +27,20 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/u
 const route = useRoute()
 const showId = computed(() => route.params.id as string)
 
-const { show, cast, crew, seasons, episodesBySeason, backgroundImage, isLoading, error, notFound } =
-  useShowDetail(showId)
+const {
+  show,
+  cast,
+  crew,
+  seasons,
+  episodesBySeason,
+  backgroundImage,
+  posterImage,
+  isLoading,
+  error,
+  notFound,
+} = useShowDetail(showId)
+
+const descriptionExpanded = ref(false)
 
 const selectedSeasonNumber = ref<number>(1)
 watch(
@@ -94,40 +106,112 @@ function stripHtml(html: string | null): string {
         <AlertDescription>{{ error }}</AlertDescription>
       </Alert>
 
-      <!-- Hero -->
-      <section
-        class="relative min-h-[40vh] w-full overflow-hidden rounded-lg bg-muted md:min-h-[50vh]"
-      >
+      <!-- Hero: poster-card + backdrop -->
+      <section class="relative w-full overflow-hidden rounded-lg bg-muted md:min-h-[50vh]">
+        <!-- Backdrop: fixed height on mobile, full hero on desktop -->
+        <div class="relative h-[200px] w-full md:absolute md:inset-0 md:h-full">
+          <div
+            v-if="backgroundImage"
+            class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            :style="{ backgroundImage: `url(${backgroundImage})` }"
+          />
+          <div
+            class="absolute inset-0 bg-linear-to-t from-background via-background/80 to-transparent md:from-background md:via-background/70 md:to-background/20"
+          />
+        </div>
+        <!-- Content: poster + info; on very small screens only title/year/rate beside poster, rest below -->
         <div
-          v-if="backgroundImage"
-          class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          :style="{ backgroundImage: `url(${backgroundImage})` }"
-        />
-        <div
-          class="absolute inset-0 bg-linear-to-t from-background via-background/80 to-transparent"
-        />
-        <div class="relative flex min-h-[40vh] flex-col justify-end gap-3 p-6 md:min-h-[50vh]">
-          <h1 class="text-3xl font-bold tracking-tight md:text-4xl">
-            {{ show.name }}
-          </h1>
-          <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span v-if="yearFromPremiered(show.premiered)">
-              {{ yearFromPremiered(show.premiered) }}
-            </span>
-            <span class="flex items-center gap-1">
-              <StarIcon class="size-4 text-yellow-500 dark:text-yellow-400" />
-              {{ formatRating(show.rating?.average) }}
-            </span>
-            <span v-if="show.genres?.length">
-              {{ show.genres.join(', ') }}
-            </span>
-            <span v-if="show.runtime">{{ show.runtime }} min</span>
-            <span v-if="show.network">{{ show.network.name }}</span>
-            <span>{{ show.status }}</span>
+          class="relative flex flex-col gap-4 p-4 sm:flex-row sm:gap-6 md:min-h-[50vh] md:items-end md:p-6"
+        >
+          <!-- Poster card: overlaps backdrop on mobile -->
+          <div class="-mt-16 shrink-0 md:mt-0">
+            <img
+              v-if="posterImage"
+              :src="posterImage"
+              :alt="show.name"
+              class="w-[120px] aspect-2/3 rounded-lg object-cover shadow-lg md:w-[200px]"
+            />
+            <div
+              v-else
+              class="flex w-[120px] aspect-2/3 items-center justify-center rounded-lg bg-muted-foreground/20 text-2xl font-bold text-muted-foreground md:w-[200px]"
+              aria-hidden="true"
+            >
+              {{ show.name.charAt(0).toUpperCase() }}
+            </div>
           </div>
-          <p v-if="stripHtml(show.summary)" class="max-w-2xl text-sm leading-relaxed">
-            {{ stripHtml(show.summary) }}
-          </p>
+          <!-- Beside poster: on xs only title + year + rating; from sm up, full info -->
+          <div class="flex min-w-0 flex-1 flex-col justify-end gap-3 pb-2 sm:gap-3 md:pb-0">
+            <h1 class="text-3xl font-bold tracking-tight md:text-4xl">
+              {{ show.name }}
+            </h1>
+            <!-- Very small: only year + rating beside poster -->
+            <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground sm:hidden">
+              <span v-if="yearFromPremiered(show.premiered)">
+                {{ yearFromPremiered(show.premiered) }}
+              </span>
+              <span class="flex items-center gap-1">
+                <StarIcon class="size-4 text-yellow-500 dark:text-yellow-400" />
+                {{ formatRating(show.rating?.average) }}
+              </span>
+            </div>
+            <!-- From sm: full metadata row -->
+            <div class="hidden flex-wrap items-center gap-2 text-sm text-muted-foreground sm:flex">
+              <span v-if="yearFromPremiered(show.premiered)">
+                {{ yearFromPremiered(show.premiered) }}
+              </span>
+              <span class="flex items-center gap-1">
+                <StarIcon class="size-4 text-yellow-500 dark:text-yellow-400" />
+                {{ formatRating(show.rating?.average) }}
+              </span>
+              <span v-if="show.genres?.length">
+                {{ show.genres.join(', ') }}
+              </span>
+              <span v-if="show.runtime">{{ show.runtime }} min</span>
+              <span v-if="show.network">{{ show.network.name }}</span>
+              <span>{{ show.status }}</span>
+            </div>
+            <!-- From sm: description beside poster -->
+            <template v-if="stripHtml(show.summary)">
+              <p
+                :class="[
+                  'hidden max-w-2xl text-sm leading-relaxed sm:block md:line-clamp-none',
+                  descriptionExpanded ? '' : 'line-clamp-3',
+                ]"
+              >
+                {{ stripHtml(show.summary) }}
+              </p>
+              <button
+                type="button"
+                class="hidden self-start text-sm font-medium text-primary underline-offset-4 hover:underline sm:block md:sr-only"
+                @click="descriptionExpanded = !descriptionExpanded"
+              >
+                {{ descriptionExpanded ? 'Show less' : 'Read more' }}
+              </button>
+            </template>
+          </div>
+          <!-- Very small only: genres, runtime, network, status + description full width below poster row -->
+          <div class="flex flex-col gap-3 sm:hidden">
+            <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <span v-if="show.genres?.length">
+                {{ show.genres.join(', ') }}
+              </span>
+              <span v-if="show.runtime">{{ show.runtime }} min</span>
+              <span v-if="show.network">{{ show.network.name }}</span>
+              <span>{{ show.status }}</span>
+            </div>
+            <template v-if="stripHtml(show.summary)">
+              <p :class="['text-sm leading-relaxed', descriptionExpanded ? '' : 'line-clamp-3']">
+                {{ stripHtml(show.summary) }}
+              </p>
+              <button
+                type="button"
+                class="self-start text-sm font-medium text-primary underline-offset-4 hover:underline"
+                @click="descriptionExpanded = !descriptionExpanded"
+              >
+                {{ descriptionExpanded ? 'Show less' : 'Read more' }}
+              </button>
+            </template>
+          </div>
         </div>
       </section>
 

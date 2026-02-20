@@ -92,7 +92,7 @@ describe('ShowDetailView', () => {
     await waitFor(
       () => {
         expect(screen.getByRole('heading', { name: 'Breaking Bad', level: 1 })).toBeInTheDocument()
-        expect(screen.getByText(/A chemistry teacher/)).toBeInTheDocument()
+        expect(screen.getAllByText(/A chemistry teacher/).length).toBeGreaterThanOrEqual(1)
         expect(screen.getByRole('heading', { name: 'Cast', level: 2 })).toBeInTheDocument()
         expect(screen.getByText('Bryan Cranston')).toBeInTheDocument()
         expect(screen.getByText('Walter White')).toBeInTheDocument()
