@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
-import { db } from '@/db'
+import { db, bulkPutShows } from '@/db'
 import {
   screen,
   renderWithProviders,
@@ -44,7 +44,7 @@ describe('GenreView', () => {
   })
 
   it('renders genre heading and show cards when genre has data', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Show One', {
         genres: ['Drama'],
         image: { medium: 'https://example.com/1.jpg', original: 'https://example.com/1-orig.jpg' },
@@ -75,15 +75,16 @@ describe('GenreView', () => {
     )
   })
 
-  it('shows Load more button when genre has many shows', async () => {
+  it('shows pagination when genre has many shows', async () => {
     const shows = Array.from({ length: 25 }, (_, i) =>
       makeShow(i + 1, `Show ${i + 1}`, { genres: ['Drama'] }),
     )
-    await db.shows.bulkPut(shows)
+    await bulkPutShows(shows)
 
     await renderWithProviders(GenreView, {
       useRouter: true,
       initialRoute: '/genres/drama',
+      initialStoreState: { showSync: { status: 'completed', totalShowsStored: 25 } },
     })
     await flushPromises()
 
@@ -91,8 +92,8 @@ describe('GenreView', () => {
       () => {
         const headings = screen.getAllByRole('heading', { name: 'Drama', level: 1 })
         expect(headings.length).toBeGreaterThanOrEqual(1)
-        const loadMoreButtons = screen.getAllByRole('button', { name: /load more/i })
-        expect(loadMoreButtons.length).toBeGreaterThanOrEqual(1)
+        const nextButton = screen.getByRole('button', { name: /next/i })
+        expect(nextButton).toBeInTheDocument()
       },
       { timeout: 5000 },
     )

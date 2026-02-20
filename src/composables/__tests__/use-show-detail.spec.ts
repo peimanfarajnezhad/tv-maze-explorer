@@ -11,7 +11,7 @@ import {
   waitUntil,
 } from '@/test-utils'
 import { useShowDetail } from '../use-show-detail'
-import { db } from '@/db'
+import { db, toStoredShow } from '@/db'
 import * as tvmaze from '@/services/tvmaze'
 
 vi.mock('@/services/tvmaze', () => ({
@@ -35,7 +35,7 @@ describe('useShowDetail', () => {
 
   it('loads from IndexedDB then fetches full show with embeds', async () => {
     const cached = makeShow(1, 'Cached Show', { summary: 'From DB' })
-    await db.shows.put(cached)
+    await db.shows.put(toStoredShow(cached))
 
     const fullShow = {
       ...cached,
@@ -59,7 +59,47 @@ describe('useShowDetail', () => {
     expect(result.crew.value).toHaveLength(1)
     expect(result.seasons.value).toHaveLength(1)
     expect(result.episodesBySeason.value.get(1)).toHaveLength(2)
+    expect(result.posterImage).toBeDefined()
     expect(tvmaze.getShow).toHaveBeenCalledWith(1)
+  })
+
+  it('sets posterImage from show.image (medium preferred)', async () => {
+    const fullShow = makeShow(1, 'Test Show', {
+      image: {
+        medium: 'https://example.com/medium.jpg',
+        original: 'https://example.com/original.jpg',
+      },
+    })
+    vi.mocked(tvmaze.getShow).mockResolvedValueOnce(fullShow as never)
+
+    const showId = ref('1')
+    const { result } = mountComposable(() => useShowDetail(showId))
+
+    await waitUntil(() => !result.isLoading.value)
+
+    expect(result.posterImage.value).toBe('https://example.com/medium.jpg')
+  })
+
+  it('sets posterImage to original when medium is missing', async () => {
+    const fullShow = makeShow(1, 'Test Show', {
+      image: {
+        medium: 'https://example.com/medium.jpg',
+        original: 'https://example.com/original.jpg',
+      },
+    })
+    // Override to only have original (TVMaze type allows both; we simulate partial response)
+    const showWithOriginalOnly = {
+      ...fullShow,
+      image: { original: 'https://example.com/original.jpg' },
+    }
+    vi.mocked(tvmaze.getShow).mockResolvedValueOnce(showWithOriginalOnly as never)
+
+    const showId = ref('1')
+    const { result } = mountComposable(() => useShowDetail(showId))
+
+    await waitUntil(() => !result.isLoading.value)
+
+    expect(result.posterImage.value).toBe('https://example.com/original.jpg')
   })
 
   it('groups episodes by season number', async () => {
@@ -97,7 +137,7 @@ describe('useShowDetail', () => {
 
   it('keeps cached show and sets error when API fails after DB hit', async () => {
     const cached = makeShow(1, 'Cached')
-    await db.shows.put(cached)
+    await db.shows.put(toStoredShow(cached))
     vi.mocked(tvmaze.getShow).mockRejectedValueOnce(new Error('Timeout'))
 
     const showId = ref('1')

@@ -16,22 +16,26 @@ export interface UseShowDetailReturn {
   seasons: Ref<TvmazeSeason[]>
   episodesBySeason: Ref<Map<number, TvmazeEpisode[]>>
   backgroundImage: Ref<string | null>
+  posterImage: Ref<string | null>
   isLoading: Ref<boolean>
   error: Ref<string | null>
   notFound: Ref<boolean>
 }
 
+/** Prefer only landscape/background-type images for backdrop; fall back to main show image if none. */
 function pickBackgroundImage(show: TvmazeShow): string | null {
   const images = show._embedded?.images
   if (images?.length) {
     const background = images.find((img) => img.type === 'background')
     const url = background?.resolutions?.original?.url ?? background?.resolutions?.medium?.url
     if (url) return url
-    const poster = images.find((img) => img.type === 'poster')
-    const posterUrl = poster?.resolutions?.original?.url ?? poster?.resolutions?.medium?.url
-    if (posterUrl) return posterUrl
   }
   return show.image?.original ?? show.image?.medium ?? null
+}
+
+/** Standard vertical poster (2:3) for the poster card. */
+function pickPosterImage(show: TvmazeShow): string | null {
+  return show.image?.medium ?? show.image?.original ?? null
 }
 
 function groupEpisodesBySeason(episodes: TvmazeEpisode[]): Map<number, TvmazeEpisode[]> {
@@ -54,6 +58,7 @@ export function useShowDetail(showId: Ref<string | number>): UseShowDetailReturn
   const seasons = ref<TvmazeSeason[]>([])
   const episodesBySeason = ref<Map<number, TvmazeEpisode[]>>(new Map())
   const backgroundImage = ref<string | null>(null)
+  const posterImage = ref<string | null>(null)
   const isLoading = ref(true)
   const error = ref<string | null>(null)
   const notFound = ref(false)
@@ -75,6 +80,7 @@ export function useShowDetail(showId: Ref<string | number>): UseShowDetailReturn
     seasons.value = []
     episodesBySeason.value = new Map()
     backgroundImage.value = null
+    posterImage.value = null
 
     try {
       const fromDb = await db.shows.get(numId)
@@ -89,6 +95,7 @@ export function useShowDetail(showId: Ref<string | number>): UseShowDetailReturn
       seasons.value = full._embedded?.seasons ?? []
       episodesBySeason.value = groupEpisodesBySeason(full._embedded?.episodes ?? [])
       backgroundImage.value = pickBackgroundImage(full)
+      posterImage.value = pickPosterImage(full)
     } catch (e) {
       if (!show.value) {
         notFound.value = true
@@ -114,6 +121,7 @@ export function useShowDetail(showId: Ref<string | number>): UseShowDetailReturn
     seasons,
     episodesBySeason,
     backgroundImage,
+    posterImage,
     isLoading,
     error,
     notFound,

@@ -1,5 +1,5 @@
 /**
- * Composable for genre page: one genre or "all", load-more pagination.
+ * Composable for genre page: one genre or "all", page-based pagination.
  * Resolves route param id (slug) to genre name and loads shows from IndexedDB.
  * Supports search by name and sort by id (default), rating, or premiered.
  */
@@ -7,27 +7,28 @@
 import { ref, watch, onMounted } from 'vue'
 import type { Ref } from 'vue'
 
-import { db } from '@/db'
+import { db, getAllGenresFromDb } from '@/db'
 import type { TvmazeShow } from '@/types'
 import { genreNameToSlug, slugToGenreDisplayName } from '@/lib/slug'
 
-const PAGE_SIZE = 20
+export const PAGE_SIZE = 20
 
 export type SortField = 'id' | 'rating' | 'premiered'
 
 export interface UseShowsByGenreOptions {
   searchQuery?: Ref<string>
   sortField?: Ref<SortField>
+  page?: Ref<number>
 }
 
 export interface UseShowsByGenreReturn {
   genreName: Ref<string>
   genreSlug: Ref<string | null>
   shows: Ref<TvmazeShow[]>
-  hasMore: Ref<boolean>
+  totalCount: Ref<number>
   isLoading: Ref<boolean>
-  loadMore: () => Promise<void>
   notFound: Ref<boolean>
+  error: Ref<string | null>
 }
 
 export function useShowsByGenre(
@@ -36,26 +37,24 @@ export function useShowsByGenre(
 ): UseShowsByGenreReturn {
   const searchQuery = options.searchQuery ?? ref('')
   const sortField = options.sortField ?? ref<SortField>('id')
+  const page = options.page ?? ref(1)
 
-  const genreName = ref('') as Ref<string>
-  const genreSlug = ref<string | null>(null) as Ref<string | null>
-  const shows = ref<TvmazeShow[]>([]) as Ref<TvmazeShow[]>
-  const hasMore = ref(true)
+  const genreName = ref('')
+  const genreSlug = ref<string | null>(null)
+  const shows = ref<TvmazeShow[]>([])
+  const totalCount = ref(0)
   const isLoading = ref(false)
   const notFound = ref(false)
+  const error = ref<string | null>(null)
 
-  let offset = 0
-  let resolvedGenre: string | null = null
+  const state = {
+    resolvedGenre: null as string | null,
+    requestId: 0,
+  }
 
   async function resolveGenre(slug: string): Promise<string | null> {
-    const all = await db.shows.toArray()
-    const set = new Set<string>()
-    for (const show of all) {
-      for (const g of show.genres) set.add(g)
-    }
-    const genres = Array.from(set)
-    const found = genres.find((g) => genreNameToSlug(g) === slug)
-    return found ?? null
+    const genres = await getAllGenresFromDb()
+    return genres.find((g) => genreNameToSlug(g) === slug) ?? null
   }
 
   function genreFilter(genre: string | null): (s: TvmazeShow) => boolean {
@@ -69,109 +68,91 @@ export function useShowsByGenre(
     return (s) => s.name.toLowerCase().includes(lower)
   }
 
-  async function loadPage(append: boolean): Promise<void> {
+  async function loadPage(): Promise<void> {
     const id = routeId.value
     const q = searchQuery.value
     const sort = sortField.value
+    const currentPage = Math.max(1, page.value)
+    const offset = (currentPage - 1) * PAGE_SIZE
 
+    const myRequestId = ++state.requestId
     isLoading.value = true
+    error.value = null
+
     try {
       const isAll = !id || id === ''
 
       if (!isAll) {
-        if (resolvedGenre === null || genreSlug.value !== id) {
+        if (state.resolvedGenre === null || genreSlug.value !== id) {
           const resolved = await resolveGenre(id)
+          if (myRequestId !== state.requestId) return
           if (!resolved) {
             notFound.value = true
             genreName.value = slugToGenreDisplayName(id)
             genreSlug.value = id
             shows.value = []
-            hasMore.value = false
+            totalCount.value = 0
             return
           }
           notFound.value = false
-          resolvedGenre = resolved
+          state.resolvedGenre = resolved
           genreSlug.value = id
           genreName.value = resolved
-          offset = 0
-          if (!append) shows.value = []
         }
       } else {
         notFound.value = false
-        resolvedGenre = null
+        state.resolvedGenre = null
         genreSlug.value = null
         genreName.value = 'All'
-        offset = 0
-        if (!append) shows.value = []
       }
 
-      const byGenre = genreFilter(resolvedGenre)
+      const byGenre = genreFilter(state.resolvedGenre)
       const bySearch = searchFilter(q)
 
-      if (sort === 'id') {
-        const collection = db.shows.orderBy('id').filter(byGenre).filter(bySearch)
-        const count = await collection.count()
-        const page = await collection.offset(offset).limit(PAGE_SIZE).toArray()
-        if (append) {
-          shows.value = [...shows.value, ...page]
-        } else {
-          shows.value = page
-        }
-        offset += page.length
-        hasMore.value = offset < count
-      } else {
-        const collection = db.shows.filter(byGenre).filter(bySearch)
-        const all = await collection.toArray()
-        const sorted =
-          sort === 'rating'
-            ? [...all].sort((a, b) => (b.rating?.average ?? -1) - (a.rating?.average ?? -1))
-            : [...all].sort((a, b) => {
-                const ad = a.premiered ?? ''
-                const bd = b.premiered ?? ''
-                return bd.localeCompare(ad)
-              })
-        const page = sorted.slice(offset, offset + PAGE_SIZE)
-        if (append) {
-          shows.value = [...shows.value, ...page]
-        } else {
-          shows.value = page
-        }
-        offset += page.length
-        hasMore.value = offset < sorted.length
-      }
+      const collection =
+        sort === 'id'
+          ? db.shows.orderBy('id').filter(byGenre).filter(bySearch)
+          : sort === 'rating'
+            ? db.shows.orderBy('_ratingSort').reverse().filter(byGenre).filter(bySearch)
+            : db.shows.orderBy('_premieredSort').reverse().filter(byGenre).filter(bySearch)
+
+      const count = await collection.count()
+      if (myRequestId !== state.requestId) return
+      const pageItems = await collection.offset(offset).limit(PAGE_SIZE).toArray()
+      if (myRequestId !== state.requestId) return
+      shows.value = pageItems
+      totalCount.value = count
+    } catch (e) {
+      if (myRequestId !== state.requestId) return
+      const message = e instanceof Error ? e.message : String(e)
+      error.value = message
+      shows.value = []
+      totalCount.value = 0
     } finally {
-      isLoading.value = false
+      if (myRequestId === state.requestId) {
+        isLoading.value = false
+      }
     }
   }
 
-  async function loadMore(): Promise<void> {
-    if (!hasMore.value || isLoading.value) return
-    await loadPage(true)
-  }
-
   onMounted(() => {
-    loadPage(false)
+    loadPage()
   })
 
-  watch(
-    [routeId, searchQuery, sortField],
-    () => {
-      if (routeId.value) {
-        resolvedGenre = null
-      }
-      offset = 0
-      loadPage(false)
-    },
-    { deep: true },
-  )
+  watch([routeId, searchQuery, sortField, page], () => {
+    if (routeId.value) {
+      state.resolvedGenre = null
+    }
+    loadPage()
+  })
 
   return {
     genreName,
     genreSlug,
     shows,
-    hasMore,
+    totalCount,
     isLoading,
-    loadMore,
     notFound,
+    error,
   }
 }

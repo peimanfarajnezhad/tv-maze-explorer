@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-import { db } from '@/db'
+import { db, bulkPutShows } from '@/db'
 import {
   screen,
   renderWithProviders,
@@ -48,7 +48,7 @@ describe('HomeView', () => {
   })
 
   it('renders genre carousels when data is in DB', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Show A', { genres: ['Drama'] }),
       makeShow(2, 'Show B', { genres: ['Drama', 'Comedy'] }),
     ])

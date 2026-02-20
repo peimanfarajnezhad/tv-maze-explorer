@@ -212,7 +212,11 @@ export interface ComponentTestOptions extends RenderOptions<Component> {
   initialRoute?: string
   /** Initial store state applied before mount (e.g. so views do not wait on sync delay). */
   initialStoreState?: {
-    showSync?: Partial<{ status: SyncStatus; totalShowsStored: number }>
+    showSync?: Partial<{
+      isInitialized: boolean
+      status: SyncStatus
+      totalShowsStored: number
+    }>
   }
 }
 

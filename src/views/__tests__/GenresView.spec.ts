@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
-import { db } from '@/db'
+import { bulkPutShows } from '@/db'
 import {
   screen,
   renderWithProviders,
@@ -35,7 +35,7 @@ describe('GenresView', () => {
   })
 
   it('renders genre links when data is loaded', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Show A', { genres: ['Drama', 'Comedy'] }),
       makeShow(2, 'Show B', { genres: ['Comedy'] }),
     ])
@@ -58,7 +58,7 @@ describe('GenresView', () => {
   })
 
   it('genre links point to genre detail route', async () => {
-    await db.shows.bulkPut([makeShow(1, 'Show A', { genres: ['Drama'] })])
+    await bulkPutShows([makeShow(1, 'Show A', { genres: ['Drama'] })])
 
     await renderWithProviders(GenresView, {
       useRouter: true,

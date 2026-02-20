@@ -12,6 +12,7 @@ import { ShowSyncEngine } from '@/services/show-sync-engine'
 export type SyncStatus = 'idle' | 'probing' | 'syncing' | 'paused' | 'completed' | 'error'
 
 export const useShowSyncStore = defineStore('showSync', () => {
+  const isInitialized = ref(false)
   const status = ref<SyncStatus>('idle')
   const currentPage = ref(0)
   const totalShowsStored = ref(0)
@@ -21,6 +22,15 @@ export const useShowSyncStore = defineStore('showSync', () => {
   const estimatedTimeRemainingMs = ref<number | null>(null)
   const errorMessage = ref<string | null>(null)
   const startedAt = ref<number | null>(null)
+
+  const isReady = computed(
+    () =>
+      isInitialized.value &&
+      (totalShowsStored.value > 0 ||
+        status.value === 'completed' ||
+        status.value === 'paused' ||
+        status.value === 'error'),
+  )
 
   const progressPercent = computed<number | null>(() => {
     const total = estimatedTotalPages.value
@@ -86,12 +96,14 @@ export const useShowSyncStore = defineStore('showSync', () => {
   }
 
   async function initialize() {
+    if (isInitialized.value) return
     const meta = await getSyncMeta()
     if (meta?.isCompleted) {
       status.value = 'completed'
       lastCompletedPage.value = meta.lastCompletedPage
       totalShowsStored.value = meta.totalShowsStored
       estimatedTotalPages.value = meta.estimatedTotalPages
+      isInitialized.value = true
       return
     }
     if (meta?.isPaused) {
@@ -99,9 +111,11 @@ export const useShowSyncStore = defineStore('showSync', () => {
       lastCompletedPage.value = meta.lastCompletedPage
       totalShowsStored.value = meta.totalShowsStored
       estimatedTotalPages.value = meta.estimatedTotalPages
+      isInitialized.value = true
       return
     }
     startEngine()
+    isInitialized.value = true
   }
 
   function pause() {
@@ -129,6 +143,8 @@ export const useShowSyncStore = defineStore('showSync', () => {
   }
 
   return {
+    isInitialized,
+    isReady,
     status,
     currentPage,
     totalShowsStored,

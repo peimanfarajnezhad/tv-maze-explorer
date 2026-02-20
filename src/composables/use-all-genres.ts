@@ -7,7 +7,7 @@ import { ref, watch, onMounted } from 'vue'
 import type { Ref } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 
-import { db } from '@/db'
+import { getAllGenresFromDb } from '@/db'
 import { arraysEqual } from '@/lib/arrays'
 import { useShowSyncStore } from '@/stores/show-sync'
 
@@ -17,7 +17,7 @@ export interface UseAllGenresReturn {
 }
 
 export function useAllGenres(): UseAllGenresReturn {
-  const genres = ref<string[]>([]) as Ref<string[]>
+  const genres = ref<string[]>([])
   const isLoading = ref(false)
 
   const store = useShowSyncStore()
@@ -25,15 +25,10 @@ export function useAllGenres(): UseAllGenresReturn {
   async function load(): Promise<void> {
     isLoading.value = true
     try {
-      const all = await db.shows.toArray()
-      const set = new Set<string>()
-      for (const show of all) {
-        for (const g of show.genres) set.add(g)
-      }
-      const next = Array.from(set).sort()
+      const next = await getAllGenresFromDb()
       // Only assign when the list actually changed to avoid unnecessary re-renders
       if (!arraysEqual(next, genres.value)) {
-        genres.value = next
+        genres.value.push(...next)
       }
     } finally {
       isLoading.value = false

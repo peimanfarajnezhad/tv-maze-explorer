@@ -63,6 +63,7 @@ describe('useShowSyncStore', () => {
   describe('initial state', () => {
     it('has idle status and default ref values', () => {
       const store = getStore()
+      expect(store.isInitialized).toBe(false)
       expect(store.status).toBe('idle')
       expect(store.currentPage).toBe(0)
       expect(store.totalShowsStored).toBe(0)
@@ -82,6 +83,82 @@ describe('useShowSyncStore', () => {
     it('formattedETA is em dash when no ETA', () => {
       const store = getStore()
       expect(store.formattedETA).toBe('—')
+    })
+
+    it('isReady is false when not initialized', () => {
+      const store = getStore()
+      expect(store.isReady).toBe(false)
+    })
+  })
+
+  describe('isInitialized / isReady', () => {
+    it('isInitialized is true after initialize() when getSyncMeta returns completed', async () => {
+      mockGetSyncMeta.mockResolvedValue({
+        id: 'showSync',
+        lastCompletedPage: 99,
+        totalShowsStored: 2500,
+        estimatedTotalPages: 100,
+        isCompleted: true,
+        isPaused: false,
+      })
+      const store = getStore()
+      await store.initialize()
+      expect(store.isInitialized).toBe(true)
+      expect(store.isReady).toBe(true)
+    })
+
+    it('isInitialized is true after initialize() when getSyncMeta returns paused', async () => {
+      mockGetSyncMeta.mockResolvedValue({
+        id: 'showSync',
+        lastCompletedPage: 42,
+        totalShowsStored: 1050,
+        estimatedTotalPages: 100,
+        isCompleted: false,
+        isPaused: true,
+      })
+      const store = getStore()
+      await store.initialize()
+      expect(store.isInitialized).toBe(true)
+      expect(store.isReady).toBe(true)
+    })
+
+    it('isInitialized is true after initialize() when engine is started', async () => {
+      mockGetSyncMeta.mockResolvedValue(undefined)
+      mockUpdateSyncMeta.mockResolvedValue(undefined)
+      const store = getStore()
+      await store.initialize()
+      expect(store.isInitialized).toBe(true)
+      expect(store.isReady).toBe(false)
+    })
+
+    it('isReady is false when syncing and totalShowsStored is 0', async () => {
+      mockGetSyncMeta.mockResolvedValue(undefined)
+      mockUpdateSyncMeta.mockResolvedValue(undefined)
+      const store = getStore()
+      await store.initialize()
+      expect(store.status).toBe('probing')
+      expect(store.totalShowsStored).toBe(0)
+      expect(store.isReady).toBe(false)
+    })
+
+    it('isReady becomes true when totalShowsStored > 0 via onProgress', async () => {
+      mockGetSyncMeta.mockResolvedValue(undefined)
+      mockUpdateSyncMeta.mockResolvedValue(undefined)
+      const store = getStore()
+      await store.initialize()
+      expect(store.isReady).toBe(false)
+      engineCallbacks!.onProgress(makeProgress({ totalShowsStored: 250 }))
+      expect(store.isReady).toBe(true)
+    })
+
+    it('isReady is true when status is error', async () => {
+      mockGetSyncMeta.mockResolvedValue(undefined)
+      mockUpdateSyncMeta.mockResolvedValue(undefined)
+      const store = getStore()
+      await store.initialize()
+      engineCallbacks!.onError('Network failed')
+      expect(store.status).toBe('error')
+      expect(store.isReady).toBe(true)
     })
   })
 

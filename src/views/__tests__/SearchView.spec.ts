@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 
-import { db } from '@/db'
+import { bulkPutShows } from '@/db'
 import {
   screen,
   renderWithProviders,
@@ -62,7 +62,7 @@ describe('SearchView', () => {
   })
 
   it('renders show cards when results match', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Match Show', {
         genres: ['Drama'],
         image: {
@@ -90,7 +90,7 @@ describe('SearchView', () => {
   })
 
   it('shows "No shows match your filters" when no results', async () => {
-    await db.shows.bulkPut([makeShow(1, 'Show A', { genres: ['Drama'] })])
+    await bulkPutShows([makeShow(1, 'Show A', { genres: ['Drama'] })])
 
     await renderWithProviders(SearchView, {
       useRouter: true,
