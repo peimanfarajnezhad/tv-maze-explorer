@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 import { useAllGenres } from '@/composables/use-all-genres'
 import { genreNameToSlug } from '@/lib/slug'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 
 const { genres, isLoading } = useAllGenres()
 
@@ -45,6 +46,13 @@ function colorClassForIndex(index: number): string {
       </div>
     </template>
 
+    <Empty v-else-if="!isLoading && genres.length === 0">
+      <EmptyHeader>
+        <EmptyTitle>No genres yet</EmptyTitle>
+        <EmptyDescription>Sync in progress or no data in database.</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+
     <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       <RouterLink
         v-for="(genre, index) in genres"
@@ -59,9 +67,5 @@ function colorClassForIndex(index: number): string {
         {{ genre }}
       </RouterLink>
     </div>
-
-    <p v-if="!isLoading && genres.length === 0" class="text-muted-foreground">
-      No genres yet. Sync in progress or no data in database.
-    </p>
   </main>
 </template>

@@ -8,6 +8,12 @@ import type { TvmazeShow } from '@/types'
 
 export const SYNC_META_ID = 'showSync'
 
+/** Stored show shape: TvmazeShow plus sort keys for DB-backed ordering. */
+export interface StoredTvmazeShow extends TvmazeShow {
+  _ratingSort: number
+  _premieredSort: string
+}
+
 export interface SyncMeta {
   id: string
   lastCompletedPage: number
@@ -17,8 +23,16 @@ export interface SyncMeta {
   isPaused: boolean
 }
 
+export function toStoredShow(show: TvmazeShow): StoredTvmazeShow {
+  return {
+    ...show,
+    _ratingSort: show.rating?.average ?? -1,
+    _premieredSort: show.premiered ?? '1900-01-01',
+  }
+}
+
 class TvMazeDb extends Dexie {
-  shows!: EntityTable<TvmazeShow, 'id'>
+  shows!: EntityTable<StoredTvmazeShow, 'id'>
   syncMeta!: EntityTable<SyncMeta, 'id'>
 
   constructor() {
@@ -27,6 +41,24 @@ class TvMazeDb extends Dexie {
       shows: 'id, name',
       syncMeta: 'id',
     })
+    this.version(2).stores({
+      shows: 'id, name, *genres',
+      syncMeta: 'id',
+    })
+    this.version(3)
+      .stores({
+        shows: 'id, name, *genres, _ratingSort, _premieredSort',
+        syncMeta: 'id',
+      })
+      .upgrade((trans) => {
+        trans
+          .table('shows')
+          .toCollection()
+          .modify((show: TvmazeShow & Record<string, unknown>) => {
+            show._ratingSort = show.rating?.average ?? -1
+            show._premieredSort = show.premiered ?? '1900-01-01'
+          })
+      })
   }
 }
 
@@ -52,9 +84,19 @@ export async function updateSyncMeta(partial: Partial<SyncMeta>): Promise<void> 
 
 export async function bulkPutShows(shows: TvmazeShow[]): Promise<void> {
   if (shows.length === 0) return
-  await db.shows.bulkPut(shows)
+  const stored = shows.map(toStoredShow)
+  await db.shows.bulkPut(stored)
 }
 
 export async function getShowCount(): Promise<number> {
   return db.shows.count()
+}
+
+/**
+ * Returns all unique genre names from the shows table.
+ * Uses the *genres multi-entry index for efficient iteration.
+ */
+export async function getAllGenresFromDb(): Promise<string[]> {
+  const keys = await db.shows.orderBy('genres').uniqueKeys()
+  return (keys as string[]).filter(Boolean).sort()
 }

@@ -16,7 +16,9 @@ function formatRating(show: TvmazeShow): string {
 
 <template>
   <RouterLink :to="{ name: 'show-detail', params: { id: show.id } }" class="block">
-    <Card class="py-0 shrink-0 overflow-hidden transition-shadow hover:shadow-md full-width">
+    <Card
+      class="w-[150px] py-0 shrink-0 overflow-hidden transition-shadow hover:shadow-md md:w-[160px] lg:w-[180px]"
+    >
       <div class="aspect-2/3 w-full overflow-hidden bg-muted relative">
         <img
           v-if="show.image?.medium"

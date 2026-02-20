@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGenreCarousels } from '../use-genre-carousels'
 import { clearDb, makeShow, mountComposable, flushPromises, waitUntil } from '@/test-utils'
-import { db } from '@/db'
+import { bulkPutShows } from '@/db'
 import { useShowSyncStore } from '@/stores/show-sync'
 
 const CAROUSEL_SIZE = 15
@@ -23,7 +23,7 @@ describe('useGenreCarousels', () => {
   })
 
   it('loads genres and carousels from IndexedDB on mount', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Show A', { genres: ['Drama'], rating: { average: 9 } }),
       makeShow(2, 'Show B', { genres: ['Drama', 'Comedy'], rating: { average: 8 } }),
       makeShow(3, 'Show C', { genres: ['Comedy'], rating: { average: 7 } }),
@@ -41,7 +41,7 @@ describe('useGenreCarousels', () => {
   })
 
   it('sorts carousel shows by rating descending', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'Low', { genres: ['Drama'], rating: { average: 5 } }),
       makeShow(2, 'High', { genres: ['Drama'], rating: { average: 9 } }),
       makeShow(3, 'Mid', { genres: ['Drama'], rating: { average: 7 } }),
@@ -58,7 +58,7 @@ describe('useGenreCarousels', () => {
     const shows = Array.from({ length: 20 }, (_, i) =>
       makeShow(i + 1, `Show ${i}`, { genres: ['Action'] }),
     )
-    await db.shows.bulkPut(shows)
+    await bulkPutShows(shows)
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
@@ -68,7 +68,7 @@ describe('useGenreCarousels', () => {
   })
 
   it('re-loads when totalShowsStored changes', async () => {
-    await db.shows.bulkPut([makeShow(1, 'First', { genres: ['Drama'] })])
+    await bulkPutShows([makeShow(1, 'First', { genres: ['Drama'] })])
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
@@ -77,7 +77,7 @@ describe('useGenreCarousels', () => {
 
     const store = useShowSyncStore()
     store.$patch({ totalShowsStored: 1 })
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'First', { genres: ['Drama'] }),
       makeShow(2, 'Second', { genres: ['Comedy'] }),
     ])
@@ -89,14 +89,14 @@ describe('useGenreCarousels', () => {
   })
 
   it('load() can be called manually and refreshes data', async () => {
-    await db.shows.bulkPut([makeShow(1, 'First', { genres: ['Drama'] })])
+    await bulkPutShows([makeShow(1, 'First', { genres: ['Drama'] })])
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
 
     expect(result.genres.value).toEqual(['Drama'])
 
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'First', { genres: ['Drama'] }),
       makeShow(2, 'Second', { genres: ['Comedy'] }),
     ])
@@ -107,7 +107,7 @@ describe('useGenreCarousels', () => {
   })
 
   it('does not reassign genres/carousels when totalShowsStored changes but DB content is unchanged', async () => {
-    await db.shows.bulkPut([
+    await bulkPutShows([
       makeShow(1, 'First', { genres: ['Drama'] }),
       makeShow(2, 'Second', { genres: ['Comedy'] }),
     ])

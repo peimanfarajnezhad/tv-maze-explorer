@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 
 const route = useRoute()
 const showId = computed(() => route.params.id as string)
@@ -72,17 +73,21 @@ function stripHtml(html: string | null): string {
       <ShowDetailSkeleton />
     </template>
 
-    <template v-else-if="notFound">
-      <Alert variant="destructive">
-        <AlertDescription>Show not found.</AlertDescription>
-      </Alert>
-    </template>
+    <Empty v-else-if="notFound">
+      <EmptyHeader>
+        <EmptyTitle>Show not found</EmptyTitle>
+        <EmptyDescription
+          >The show you're looking for doesn't exist or the link may be invalid.</EmptyDescription
+        >
+      </EmptyHeader>
+    </Empty>
 
-    <template v-else-if="error && !show">
-      <Alert variant="destructive">
-        <AlertDescription>{{ error }}</AlertDescription>
-      </Alert>
-    </template>
+    <Empty v-else-if="error && !show">
+      <EmptyHeader>
+        <EmptyTitle>Something went wrong</EmptyTitle>
+        <EmptyDescription>{{ error }}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
 
     <template v-else-if="show">
       <Alert v-if="error" variant="warning">

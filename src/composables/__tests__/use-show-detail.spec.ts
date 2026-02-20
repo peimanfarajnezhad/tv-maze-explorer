@@ -11,7 +11,7 @@ import {
   waitUntil,
 } from '@/test-utils'
 import { useShowDetail } from '../use-show-detail'
-import { db } from '@/db'
+import { db, toStoredShow } from '@/db'
 import * as tvmaze from '@/services/tvmaze'
 
 vi.mock('@/services/tvmaze', () => ({
@@ -35,7 +35,7 @@ describe('useShowDetail', () => {
 
   it('loads from IndexedDB then fetches full show with embeds', async () => {
     const cached = makeShow(1, 'Cached Show', { summary: 'From DB' })
-    await db.shows.put(cached)
+    await db.shows.put(toStoredShow(cached))
 
     const fullShow = {
       ...cached,
@@ -97,7 +97,7 @@ describe('useShowDetail', () => {
 
   it('keeps cached show and sets error when API fails after DB hit', async () => {
     const cached = makeShow(1, 'Cached')
-    await db.shows.put(cached)
+    await db.shows.put(toStoredShow(cached))
     vi.mocked(tvmaze.getShow).mockRejectedValueOnce(new Error('Timeout'))
 
     const showId = ref('1')
