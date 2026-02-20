@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 const showId = computed(() => route.params.id as string)
@@ -171,23 +172,22 @@ function stripHtml(html: string | null): string {
               <span>{{ show.status }}</span>
             </div>
             <!-- From sm: description beside poster -->
-            <template v-if="stripHtml(show.summary)">
+            <div class="hidden sm:block" v-if="stripHtml(show.summary)">
               <p
-                :class="[
-                  'hidden max-w-2xl text-sm leading-relaxed sm:block md:line-clamp-none',
-                  descriptionExpanded ? '' : 'line-clamp-3',
-                ]"
+                class="max-w-2xl text-sm leading-relaxed"
+                :class="descriptionExpanded ? '' : 'line-clamp-3'"
               >
                 {{ stripHtml(show.summary) }}
               </p>
-              <button
-                type="button"
-                class="hidden self-start text-sm font-medium text-primary underline-offset-4 hover:underline sm:block md:sr-only"
+              <Button
+                variant="link"
+                size="sm"
+                class="px-0"
                 @click="descriptionExpanded = !descriptionExpanded"
               >
                 {{ descriptionExpanded ? 'Show less' : 'Read more' }}
-              </button>
-            </template>
+              </Button>
+            </div>
           </div>
           <!-- Very small only: genres, runtime, network, status + description full width below poster row -->
           <div class="flex flex-col gap-3 sm:hidden">
@@ -203,13 +203,9 @@ function stripHtml(html: string | null): string {
               <p :class="['text-sm leading-relaxed', descriptionExpanded ? '' : 'line-clamp-3']">
                 {{ stripHtml(show.summary) }}
               </p>
-              <button
-                type="button"
-                class="self-start text-sm font-medium text-primary underline-offset-4 hover:underline"
-                @click="descriptionExpanded = !descriptionExpanded"
-              >
+              <Button variant="link" size="sm" @click="descriptionExpanded = !descriptionExpanded">
                 {{ descriptionExpanded ? 'Show less' : 'Read more' }}
-              </button>
+              </Button>
             </template>
           </div>
         </div>

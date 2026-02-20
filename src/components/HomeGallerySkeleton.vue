@@ -10,7 +10,9 @@ const CARDS_PER_ROW = 6
   <div class="space-y-8">
     <template v-for="row in ROWS" :key="row">
       <section class="space-y-3">
-        <div class="flex items-center justify-between">
+        <div
+          class="flex items-center justify-between rounded-xl border border-border bg-muted/30 py-3 pl-5 pr-3"
+        >
           <Skeleton class="h-7 w-24" />
           <Skeleton class="h-9 w-24" />
         </div>

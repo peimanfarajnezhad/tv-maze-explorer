@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ChevronRight } from 'lucide-vue-next'
 
 import type { TvmazeShow } from '@/types'
 import { genreNameToSlug } from '@/lib/slug'
+import { getGenreColorScheme } from '@/lib/genre-colors'
 import ShowCard from '@/components/ShowCard.vue'
 import {
   Carousel,
@@ -14,16 +16,22 @@ import {
 } from '@/components/ui/carousel'
 import { Button } from '@/components/ui/button'
 
-defineProps<{
+const props = defineProps<{
   genre: string
   shows: TvmazeShow[]
 }>()
+
+const scheme = computed(() => getGenreColorScheme(props.genre))
 </script>
 
 <template>
   <section class="space-y-3">
-    <div class="flex items-center justify-between">
-      <h2 class="text-xl font-semibold">{{ genre }}</h2>
+    <div
+      class="relative flex items-center justify-between overflow-hidden rounded-xl border bg-linear-to-r to-transparent py-3 pl-5 pr-3"
+      :class="[scheme.gradientFrom, scheme.border]"
+    >
+      <span class="absolute left-0 top-0 bottom-0 w-1" :class="scheme.stripe" />
+      <h2 class="text-xl font-semibold" :class="scheme.text">{{ genre }}</h2>
       <Button variant="ghost" size="sm" as-child>
         <RouterLink
           :to="{

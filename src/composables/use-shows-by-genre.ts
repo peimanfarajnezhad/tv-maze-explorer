@@ -69,7 +69,7 @@ export function useShowsByGenre(
   }
 
   async function loadPage(): Promise<void> {
-    const id = routeId.value
+    const id = routeId.value.toLowerCase()
     const q = searchQuery.value
     const sort = sortField.value
     const currentPage = Math.max(1, page.value)
