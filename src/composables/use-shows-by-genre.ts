@@ -57,11 +57,6 @@ export function useShowsByGenre(
     return genres.find((g) => genreNameToSlug(g) === slug) ?? null
   }
 
-  function genreFilter(genre: string | null): (s: TvmazeShow) => boolean {
-    if (!genre) return () => true
-    return (s) => s.genres.includes(genre)
-  }
-
   function searchFilter(q: string): (s: TvmazeShow) => boolean {
     if (!q.trim()) return () => true
     const lower = q.trim().toLowerCase()
@@ -106,20 +101,31 @@ export function useShowsByGenre(
         genreName.value = 'All'
       }
 
-      const byGenre = genreFilter(state.resolvedGenre)
       const bySearch = searchFilter(q)
+      const sortKey =
+        sort === 'rating' ? '_ratingSort' : sort === 'premiered' ? '_premieredSort' : 'id'
+      const descending = sort !== 'id'
 
-      const collection =
-        sort === 'id'
-          ? db.shows.orderBy('id').filter(byGenre).filter(bySearch)
-          : sort === 'rating'
-            ? db.shows.orderBy('_ratingSort').reverse().filter(byGenre).filter(bySearch)
-            : db.shows.orderBy('_premieredSort').reverse().filter(byGenre).filter(bySearch)
+      let count: number
+      let pageItems: TvmazeShow[]
 
-      const count = await collection.count()
-      if (myRequestId !== state.requestId) return
-      const pageItems = await collection.offset(offset).limit(PAGE_SIZE).toArray()
-      if (myRequestId !== state.requestId) return
+      if (state.resolvedGenre) {
+        const byGenre = db.shows.where('genres').equals(state.resolvedGenre)
+        const withSearch = q.trim() ? byGenre.filter(bySearch) : byGenre
+        const sorted = await withSearch.sortBy(sortKey)
+        if (myRequestId !== state.requestId) return
+        if (descending) sorted.reverse()
+        count = sorted.length
+        pageItems = sorted.slice(offset, offset + PAGE_SIZE)
+      } else {
+        const bySort = descending ? db.shows.orderBy(sortKey).reverse() : db.shows.orderBy(sortKey)
+        const collection = q.trim() ? bySort.filter(bySearch) : bySort
+        count = await collection.count()
+        if (myRequestId !== state.requestId) return
+        pageItems = await collection.offset(offset).limit(PAGE_SIZE).toArray()
+        if (myRequestId !== state.requestId) return
+      }
+
       shows.value = pageItems
       totalCount.value = count
     } catch (e) {

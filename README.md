@@ -144,6 +144,8 @@ flowchart TD
 
 When the sync engine or any API caller invokes `acquire()`, the limiter either grants a slot immediately or queues the promise until a slot frees up. On teardown, `dispose()` rejects all pending waiters so no dangling promises remain.
 
+**Component deep-dives:** [Rate limiter](docs/architecture/rate-limiter.md), [Show Sync Engine](docs/architecture/show-sync-engine.md).
+
 ## IndexedDB Query Pipeline
 
 All catalogue queries (genre pages, search results, sorted listings) run against IndexedDB through Dexie:
@@ -262,6 +264,21 @@ npm run test:e2e -- --project=chromium   # single browser
 npm run lint            # Oxlint + ESLint with auto-fix
 npm run format          # Prettier
 ```
+
+### Adding shadcn-vue UI Components
+
+The project uses [shadcn-vue](https://www.shadcn-vue.com/) (Reka UI) for base UI primitives in `src/components/ui/`. To add a new component:
+
+```sh
+# Interactive: list available components and pick one
+npm run ui:add
+
+# Add one or more components by name (e.g. button, dialog, card)
+npm run ui:add -- button
+npm run ui:add -- dialog card
+```
+
+Components are installed into `src/components/ui/` according to `components.json`. Use `--yes` to skip confirmation, or `--overwrite` to replace existing files (append after `--` when using the script).
 
 ## CI/CD
 
