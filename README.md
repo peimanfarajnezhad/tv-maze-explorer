@@ -2,7 +2,7 @@
 
 A client-side TV show explorer built with Vue 3 that syncs the entire [TV Maze](https://www.tvmaze.com/api) catalogue into the browser's IndexedDB in the background, enabling instant genre browsing, full-text search, and rating-based sorting — all without a backend.
 
-> **[Live Demo (GitHub Pages)](https://peiman.github.io/tv-maze-explorer/)**
+> **[Live Demo (GitHub Pages)](https://peimanfarajnezhad.github.io/tv-maze-explorer/)**
 
 ## The Challenge
 
