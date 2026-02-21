@@ -32,6 +32,12 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Workaround: GitHub Pages has no rewrite engine. Copy index.html to 404.html
+      # so that direct requests or refreshes to SPA routes (e.g. /tv-maze-explorer/search)
+      # serve the app and Vue Router can handle the URL. See docs/deployment.md.
+      - name: Copy index.html to 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

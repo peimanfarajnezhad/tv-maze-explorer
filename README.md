@@ -302,7 +302,7 @@ flowchart LR
 ```
 
 - **CI** runs on every pull request: type-check, unit tests, build.
-- **Deploy** runs on every push to `main`: build and deploy to GitHub Pages.
+- **Deploy** runs on every push to `main`: build and deploy to GitHub Pages. Because GitHub Pages has no rewrite engine, direct requests or refreshes to non-root SPA routes would otherwise return 404. The workflow applies a **workaround**: it copies `index.html` to `404.html` so Pages serves the app for any unknown path and Vue Router can handle the URL. See [docs/deployment.md](docs/deployment.md) for details.
 
 ## Known Limitations
 
