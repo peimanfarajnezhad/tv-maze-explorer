@@ -6,7 +6,7 @@ A client-side TV show explorer built with Vue 3 that syncs the entire [TV Maze](
 
 **Demo video:**
 
-<https://github.com/peimanfarajnezhad/tv-maze-explorer/raw/main/docs/demo.webm>
+https://github.com/peimanfarajnezhad/tv-maze-explorer/raw/main/docs/demo.webm
 
 ## The Challenge
 
