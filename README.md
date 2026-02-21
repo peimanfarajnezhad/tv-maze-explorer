@@ -144,6 +144,8 @@ flowchart TD
 
 When the sync engine or any API caller invokes `acquire()`, the limiter either grants a slot immediately or queues the promise until a slot frees up. On teardown, `dispose()` rejects all pending waiters so no dangling promises remain.
 
+**Component deep-dives:** [Rate limiter](docs/architecture/rate-limiter.md), [Show Sync Engine](docs/architecture/show-sync-engine.md).
+
 ## IndexedDB Query Pipeline
 
 All catalogue queries (genre pages, search results, sorted listings) run against IndexedDB through Dexie:

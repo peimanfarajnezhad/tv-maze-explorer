@@ -50,6 +50,8 @@ The `RateLimiter` class implements a sliding-window algorithm:
 - If at capacity, it calculates the wait time until the oldest timestamp expires, queues the caller, and schedules processing via `setTimeout`.
 - `dispose()` rejects all queued promises to prevent dangling promises when the engine stops.
 
+A detailed explanation of the algorithm and data structures is in [Rate limiter (architecture)](../architecture/rate-limiter.md). For a full description of the sync engine lifecycle, probing, retry, and ETA, see [Show Sync Engine (architecture)](../architecture/show-sync-engine.md).
+
 ### ETA Calculation
 
 The engine tracks the last 20 page-fetch timestamps in a rolling window. Pages per second is computed as `(window.length - 1) / (newest - oldest)`. The ETA is `remainingPages * msPerPage`.
