@@ -3,11 +3,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { ref, computed, onMounted, watch } from 'vue'
 
 import { useShowSyncStore } from '@/stores/show-sync'
-import { useShowsByGenre, PAGE_SIZE } from '@/composables/use-shows-by-genre'
+import { useShowsByGenre } from '@/composables/use-shows-by-genre'
 import type { SortField } from '@/composables/use-shows-by-genre'
 import { getGenreColorScheme } from '@/lib/genre-colors'
-import ShowCard from '@/components/ShowCard.vue'
-import ShowCardSkeleton from '@/components/ShowCardSkeleton.vue'
+import ShowGrid from '@/components/ShowGrid.vue'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
@@ -16,18 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationFirst,
-  PaginationItem,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-
 const route = useRoute()
 const router = useRouter()
 
@@ -50,13 +37,9 @@ const { genreName, shows, totalCount, isLoading, notFound } = useShowsByGenre(ro
   page: queryPage,
 })
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / PAGE_SIZE)))
-
 const currentQuery = computed(() => ({
   ...(sortValue.value !== 'id' && { sort: sortValue.value }),
 }))
-
-const showSkeleton = computed(() => isLoading.value && shows.value.length === 0 && !notFound.value)
 
 const showSyncNotice = computed(() => showSyncStore.status !== 'completed')
 const showSortAffectedNotice = computed(() => showSyncNotice.value && sortValue.value !== 'id')
@@ -135,59 +118,15 @@ watch(querySort, (s) => {
       </div>
     </header>
 
-    <Empty v-if="notFound">
-      <EmptyHeader>
-        <EmptyTitle>Genre not found</EmptyTitle>
-        <EmptyDescription
-          >The genre you're looking for doesn't exist or has no shows.</EmptyDescription
-        >
-      </EmptyHeader>
-    </Empty>
-
-    <template v-else-if="showSkeleton">
-      <div class="flex flex-wrap justify-center gap-4">
-        <ShowCardSkeleton v-for="i in 10" :key="i" />
-      </div>
-    </template>
-
-    <template v-else>
-      <div class="flex flex-wrap justify-center gap-4">
-        <ShowCard v-for="show in shows" :key="show.id" :show="show" />
-      </div>
-
-      <div v-if="totalPages > 1" class="flex justify-center pt-4">
-        <Pagination
-          :page="queryPage"
-          :total="totalCount"
-          :items-per-page="PAGE_SIZE"
-          :sibling-count="1"
-          @update:page="onPageChange"
-        >
-          <PaginationContent v-slot="{ items }">
-            <PaginationFirst />
-            <PaginationPrevious />
-            <template v-for="(item, idx) in items" :key="idx">
-              <PaginationItem
-                v-if="item.type === 'page'"
-                :value="item.value"
-                :is-active="item.value === queryPage"
-              >
-                {{ item.value }}
-              </PaginationItem>
-              <PaginationEllipsis v-else />
-            </template>
-            <PaginationNext />
-            <PaginationLast />
-          </PaginationContent>
-        </Pagination>
-      </div>
-
-      <Empty v-else-if="shows.length === 0">
-        <EmptyHeader>
-          <EmptyTitle>No shows in this genre yet</EmptyTitle>
-          <EmptyDescription>Try another genre or check back later.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
-    </template>
+    <ShowGrid
+      :shows="shows"
+      :not-found="notFound"
+      :loading="isLoading && !notFound"
+      :page="queryPage"
+      :total-count="totalCount"
+      empty-title="No shows in this genre yet"
+      empty-description="Try another genre or check back later."
+      @update:page="onPageChange"
+    />
   </main>
 </template>

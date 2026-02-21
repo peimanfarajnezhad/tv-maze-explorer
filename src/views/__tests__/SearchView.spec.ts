@@ -3,8 +3,10 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { bulkPutShows } from '@/db'
 import {
   screen,
+  within,
   renderWithProviders,
   waitFor,
+  fireEvent,
   makeShow,
   clearDb,
   flushPromises,
@@ -18,31 +20,68 @@ describe('SearchView', () => {
   })
 
   it('renders main with genre and sort selects', async () => {
-    await renderWithProviders(SearchView, {
+    const { container } = await renderWithProviders(SearchView, {
       useRouter: true,
       initialRoute: '/search',
     })
-    const main = screen.getByRole('main')
-    expect(main).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: /filter by genre/i })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: /sort by/i })).toBeInTheDocument()
+    const view = within(container as HTMLElement)
+    expect(view.getByRole('main')).toBeInTheDocument()
+    expect(view.getByPlaceholderText('Search shows...')).toBeInTheDocument()
+    expect(view.getByRole('combobox', { name: /filter by genre/i })).toBeInTheDocument()
+    expect(view.getByRole('combobox', { name: /sort by/i })).toBeInTheDocument()
   })
 
-  it('shows "Searching: q" chip with clear button when query.q is set', async () => {
-    await renderWithProviders(SearchView, {
+  it('pre-fills search input from q query param', async () => {
+    const { container } = await renderWithProviders(SearchView, {
       useRouter: true,
       initialRoute: '/search?q=test',
     })
     await flushPromises()
 
+    const view = within(container as HTMLElement)
     await waitFor(
       () => {
-        expect(screen.getByText(/Searching:/)).toBeInTheDocument()
-        expect(screen.getByText('test')).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: /clear search/i })).toBeInTheDocument()
+        const input = view.getByPlaceholderText('Search shows...')
+        expect(input).toHaveValue('test')
       },
       { timeout: 3000 },
     )
+  })
+
+  it('navigates with q param when Enter is pressed in search input', async () => {
+    const { container, router } = await renderWithProviders(SearchView, {
+      useRouter: true,
+      initialRoute: '/search',
+    })
+    await flushPromises()
+
+    const view = within(container as HTMLElement)
+    const input = view.getByPlaceholderText('Search shows...')
+    await fireEvent.update(input, 'breaking bad')
+    await fireEvent.keyDown(input, { key: 'Enter' })
+    await flushPromises()
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.q).toBe('breaking bad')
+    })
+  })
+
+  it('clears q from route when search input is emptied and Enter pressed', async () => {
+    const { container, router } = await renderWithProviders(SearchView, {
+      useRouter: true,
+      initialRoute: '/search?q=hello',
+    })
+    await flushPromises()
+
+    const view = within(container as HTMLElement)
+    const input = view.getByPlaceholderText('Search shows...')
+    await fireEvent.update(input, '')
+    await fireEvent.keyDown(input, { key: 'Enter' })
+    await flushPromises()
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.q).toBeUndefined()
+    })
   })
 
   it('shows "Genre not found" for invalid genre in query', async () => {

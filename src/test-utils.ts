@@ -220,14 +220,26 @@ export interface ComponentTestOptions extends RenderOptions<Component> {
   }
 }
 
+type RenderResult = ReturnType<typeof render>
+type TestRouter = ReturnType<typeof createTestRouter>
+
 /**
  * Render a Vue component with Pinia (and optionally Vue Router) so stores and routing work.
  * Use for components that call useShowSyncStore(), useRoute(), useRouter(), or RouterLink.
+ * When useRouter is true, the result includes a router property.
  */
 export async function renderWithProviders(
   component: Component,
+  options: ComponentTestOptions & { useRouter: true },
+): Promise<RenderResult & { router: TestRouter }>
+export async function renderWithProviders(
+  component: Component,
+  options?: ComponentTestOptions,
+): Promise<RenderResult>
+export async function renderWithProviders(
+  component: Component,
   options: ComponentTestOptions = {},
-): Promise<ReturnType<typeof render>> {
+): Promise<RenderResult | (RenderResult & { router: TestRouter })> {
   const {
     useRouter: withRouter = false,
     initialRoute = '/',
@@ -252,10 +264,11 @@ export async function renderWithProviders(
     await router.push(initialRoute)
     await router.isReady()
     global.plugins = [pinia, router]
-    return render(component, {
+    const result = await render(component, {
       ...renderOptions,
       global,
     })
+    return { ...result, router }
   }
 
   return render(component, {

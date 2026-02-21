@@ -15,7 +15,8 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ui:add": "npx shadcn-vue add"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.0",

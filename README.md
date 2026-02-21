@@ -263,6 +263,21 @@ npm run lint            # Oxlint + ESLint with auto-fix
 npm run format          # Prettier
 ```
 
+### Adding shadcn-vue UI Components
+
+The project uses [shadcn-vue](https://www.shadcn-vue.com/) (Reka UI) for base UI primitives in `src/components/ui/`. To add a new component:
+
+```sh
+# Interactive: list available components and pick one
+npm run ui:add
+
+# Add one or more components by name (e.g. button, dialog, card)
+npm run ui:add -- button
+npm run ui:add -- dialog card
+```
+
+Components are installed into `src/components/ui/` according to `components.json`. Use `--yes` to skip confirmation, or `--overwrite` to replace existing files (append after `--` when using the script).
+
 ## CI/CD
 
 ```mermaid
