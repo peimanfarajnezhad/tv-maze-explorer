@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import SearchModal from './SearchModal.vue'
 import SyncStatusBadge from './SyncStatusBadge.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import { Menu, X, Github } from 'lucide-vue-next'
@@ -73,7 +72,6 @@ watch(
           <X v-else class="size-5" />
         </Button>
 
-        <SearchModal />
         <a
           href="https://github.com/peimanfarajnezhad/tv-maze-explorer"
           target="_blank"
