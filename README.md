@@ -18,11 +18,11 @@ Build a TV Maze explorer application that:
 
 This challenge can be solved in several ways. Three approaches were evaluated:
 
-| # | Approach | Trade-off |
-|---|----------|-----------|
-| 1 | **Backend + nightly crawler** — An SSR framework (Nuxt.js / Next.js) with a database and a scheduled job that pre-syncs show data. | Ideal for production: server-side sort/filter, SEO, instant results. Requires infrastructure beyond a pure frontend assessment. |
-| 2 | **Build-time JSON on CDN** — A build script fetches all shows and outputs static JSON files served from a CDN. | Good performance, but data goes stale between builds and a single large file is impractical (~80 MB). |
-| 3 | **Client-side IndexedDB sync** *(chosen)* — The SPA syncs all shows into IndexedDB in the background while the user explores freely. Sync can be paused, resumed, and survives page refreshes. | Balanced: demonstrates Vue.js, Composition API, state management, and browser API skills while solving the data problem entirely on the client. |
+| #   | Approach                                                                                                                                                                                       | Trade-off                                                                                                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Backend + nightly crawler** — An SSR framework (Nuxt.js / Next.js) with a database and a scheduled job that pre-syncs show data.                                                             | Ideal for production: server-side sort/filter, SEO, instant results. Requires infrastructure beyond a pure frontend assessment.                 |
+| 2   | **Build-time JSON on CDN** — A build script fetches all shows and outputs static JSON files served from a CDN.                                                                                 | Good performance, but data goes stale between builds and a single large file is impractical (~80 MB).                                           |
+| 3   | **Client-side IndexedDB sync** _(chosen)_ — The SPA syncs all shows into IndexedDB in the background while the user explores freely. Sync can be paused, resumed, and survives page refreshes. | Balanced: demonstrates Vue.js, Composition API, state management, and browser API skills while solving the data problem entirely on the client. |
 
 **Why option 3?** The assessment specifically targets Vue.js and frontend skills. This approach lets a reviewer see real Composition API patterns, reactive state management with Pinia, IndexedDB indexing strategies, a custom rate limiter, and a resilient sync engine — all within a single SPA.
 
@@ -37,7 +37,6 @@ Full rationale is documented in the [Architecture Decision Records](#architectur
 - **Client-side database:** Dexie 4 (typed IndexedDB wrapper)
 - **Styling:** Tailwind CSS 4
 - **UI components:** Reka UI (shadcn-vue), Lucide icons
-- **Carousel:** Embla Carousel
 - **Utilities:** VueUse
 - **Unit testing:** Vitest 4 + Testing Library + Vue Test Utils
 - **E2E testing:** Playwright (Chromium, Firefox, WebKit)
@@ -144,7 +143,7 @@ flowchart TD
 
 When the sync engine or any API caller invokes `acquire()`, the limiter either grants a slot immediately or queues the promise until a slot frees up. On teardown, `dispose()` rejects all pending waiters so no dangling promises remain.
 
-**Component deep-dives:** [Rate limiter](docs/architecture/rate-limiter.md), [Show Sync Engine](docs/architecture/show-sync-engine.md).
+**Component deep-dives:** [Rate limiter](docs/architecture/rate-limiter.md), [Show Sync Engine](docs/architecture/show-sync-engine.md), [Database layer](docs/architecture/database-layer.md).
 
 ## IndexedDB Query Pipeline
 
@@ -190,7 +189,7 @@ Sort keys (`_ratingSort`, `_premieredSort`) are precomputed during `bulkPutShows
 
 ## Project Structure
 
-```
+```bash
 src/
 ├── components/           Reusable UI components
 │   ├── layout/           App shell — header, footer, search modal
@@ -217,13 +216,13 @@ src/
 
 ### Routes
 
-| Path | View | Description |
-|------|------|-------------|
-| `/` | `HomeView` | Genre carousels with top shows |
-| `/search?q=&genre=&sort=&page=` | `SearchView` | Search with genre filter, sort, pagination |
-| `/genres` | `GenresView` | Grid of all genres |
-| `/genres/:name?sort=&page=` | `GenreView` | Shows for a single genre |
-| `/shows/:id` | `ShowDetailView` | Full show detail with cast, crew, seasons, episodes |
+| Path                            | View             | Description                                         |
+| ------------------------------- | ---------------- | --------------------------------------------------- |
+| `/`                             | `HomeView`       | Genre carousels with top shows                      |
+| `/search?q=&genre=&sort=&page=` | `SearchView`     | Search with genre filter, sort, pagination          |
+| `/genres`                       | `GenresView`     | Grid of all genres                                  |
+| `/genres/:name?sort=&page=`     | `GenreView`      | Shows for a single genre                            |
+| `/shows/:id`                    | `ShowDetailView` | Full show detail with cast, crew, seasons, episodes |
 
 ## Getting Started
 
@@ -307,7 +306,7 @@ flowchart LR
 
 ## Known Limitations
 
-1. **Incomplete data during sync** — Search and sort always query against data synced so far. Until the background sync completes, results may be partial or rankings incomplete.
+1. **Incomplete data during sync** — Search and sort always query against data synced so far. Until the background sync completes, results may be partial or rankings incomplete. Users are informed of this via an alert on the search-view and genre-view pages.
 2. **Storage footprint** — The TV Maze API currently exposes ~361 pages of shows. Storing them all in IndexedDB requires approximately 80 MB of browser storage.
 3. **No SSR / SEO** — As a pure SPA, the application is not indexable by search engines. Server-side rendering (e.g., Nuxt.js) would be needed for SEO.
 4. **E2E coverage** — End-to-end tests are minimal (one smoke test). The unit test suite covers all components, composables, services, and the database layer.
@@ -319,13 +318,14 @@ flowchart LR
 - **Service worker** — cache API responses and enable full offline support.
 - **Comprehensive E2E tests** — cover search flows, sync pause/resume, genre navigation, and show detail rendering.
 - **Incremental sync** — use the TV Maze `/updates/shows` endpoint to fetch only changed shows after the initial sync.
+- **Versioning and changelog** — introduce semantic versioning (e.g., via `package.json` version and git tags) and maintain a CHANGELOG (e.g., Keep a Changelog format) for releases and upgrade visibility.
 
 ## Architecture Decision Records
 
-| ADR | Title |
-|-----|-------|
-| [001](docs/adr/001-client-side-indexeddb-sync.md) | Client-Side SPA with IndexedDB Background Sync |
-| [002](docs/adr/002-tech-stack-selection.md) | Tech Stack Selection |
-| [003](docs/adr/003-background-sync-engine.md) | Background Sync Engine with Pause/Resume |
+| ADR                                                      | Title                                             |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| [001](docs/adr/001-client-side-indexeddb-sync.md)        | Client-Side SPA with IndexedDB Background Sync    |
+| [002](docs/adr/002-tech-stack-selection.md)              | Tech Stack Selection                              |
+| [003](docs/adr/003-background-sync-engine.md)            | Background Sync Engine with Pause/Resume          |
 | [004](docs/adr/004-indexeddb-indexes-for-sort-filter.md) | IndexedDB Indexes for Client-Side Sort and Filter |
-| [005](docs/adr/005-api-first-show-detail.md) | API-First Strategy for Show Detail Page |
+| [005](docs/adr/005-api-first-show-detail.md)             | API-First Strategy for Show Detail Page           |
