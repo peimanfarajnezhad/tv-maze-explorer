@@ -100,3 +100,18 @@ export async function getAllGenresFromDb(): Promise<string[]> {
   const keys = await db.shows.orderBy('genres').uniqueKeys()
   return (keys as string[]).filter(Boolean).sort()
 }
+
+export type ShowSortKey = '_ratingSort' | '_premieredSort' | 'name'
+
+/**
+ * Returns the top-N shows for a given genre, sorted by the given key descending.
+ * Uses the *genres multi-entry index for filtering.
+ */
+export async function getTopShowsByGenre(
+  genre: string,
+  limit: number,
+  sortBy: ShowSortKey = '_ratingSort',
+): Promise<StoredTvmazeShow[]> {
+  const sorted = await db.shows.where('genres').equals(genre).sortBy(sortBy)
+  return sorted.slice(-limit).reverse()
+}

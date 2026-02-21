@@ -31,6 +31,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.carousels.value.length === 2)
 
     expect(result.genres.value).toEqual(['Comedy', 'Drama'])
     expect(result.carousels.value).toHaveLength(2)
@@ -49,6 +50,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.carousels.value.some((c) => c.genre === 'Drama'))
 
     const dramaCarousel = result.carousels.value.find((c) => c.genre === 'Drama')
     expect(dramaCarousel?.shows.map((s) => s.name)).toEqual(['High', 'Mid', 'Low'])
@@ -62,6 +64,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.carousels.value.some((c) => c.genre === 'Action'))
 
     const actionCarousel = result.carousels.value.find((c) => c.genre === 'Action')
     expect(actionCarousel?.shows).toHaveLength(CAROUSEL_SIZE)
@@ -72,6 +75,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.carousels.value.length === 1)
 
     expect(result.carousels.value).toHaveLength(1)
 
@@ -93,6 +97,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.genres.value.length === 1)
 
     expect(result.genres.value).toEqual(['Drama'])
 
@@ -114,6 +119,7 @@ describe('useGenreCarousels', () => {
 
     const { result } = mountComposable(() => useGenreCarousels())
     await flushPromises()
+    await waitUntil(() => result.carousels.value.length === 2)
 
     const genresRefBefore = result.genres.value
     const carouselsRefBefore = result.carousels.value
