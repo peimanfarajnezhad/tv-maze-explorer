@@ -1,6 +1,6 @@
 # Rate Limiter (Sliding Window)
 
-**Related:** [ADR-003: Background Sync Engine](../adr/003-background-sync-engine.md), [rate-limiter.ts](../../src/services/rate-limiter.ts)
+**Related:** [ADR-003: Background Sync Engine](../adr/003-background-sync-engine.md), [rate-limiter.ts](../../src/features/show-sync/model/rate-limiter.ts)
 
 ## Summary
 
@@ -115,4 +115,4 @@ So C waits until the oldest request (at 0) has left the 1 s window, then proceed
 
 - [ADR-003: Background Sync Engine with Pause/Resume](../adr/003-background-sync-engine.md) — Decision and context for the sync engine and rate limiter.
 - [README — Architecture](../../README.md#architecture) — High-level application architecture.
-- [rate-limiter.ts](../../src/services/rate-limiter.ts) — Source implementation.
+- [rate-limiter.ts](../../src/features/show-sync/model/rate-limiter.ts) — Source implementation.

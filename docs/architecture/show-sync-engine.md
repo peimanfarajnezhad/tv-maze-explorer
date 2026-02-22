@@ -1,6 +1,6 @@
 # Show Sync Engine
 
-**Related:** [ADR-003: Background Sync Engine](../adr/003-background-sync-engine.md), [Rate limiter (architecture)](rate-limiter.md), [show-sync-engine.ts](../../src/services/show-sync-engine.ts)
+**Related:** [ADR-003: Background Sync Engine](../adr/003-background-sync-engine.md), [Rate limiter (architecture)](rate-limiter.md), [engine.ts](../../src/features/show-sync/model/engine.ts)
 
 ## Summary
 
@@ -60,17 +60,17 @@ Returns `low` (the estimated total number of pages). TV Maze returns 404 for out
 
 **Example scenario.** First sync, no meta yet: `lastCompleted = -1`. So `low = 0`, `high = 499`. The probe searches `[0, 499]` for the first page that returns 404 or empty. TV Maze has about 361 pages (0-based 0..360), so the goal is `estimatedTotalPages = 361`.
 
-| Step | low | high | mid | getShows(mid) | Action |
-|------|-----|------|-----|---------------|--------|
-| 1    | 0   | 499  | 249 | data          | Page 249 exists → `low = 250` |
-| 2    | 250 | 499  | 374 | 404           | Out of range → `high = 374` |
-| 3    | 250 | 374  | 312 | data          | → `low = 313` |
-| 4    | 313 | 374  | 343 | data          | → `low = 344` |
-| 5    | 344 | 374  | 359 | data          | → `low = 360` |
-| 6    | 360 | 374  | 367 | 404           | → `high = 367` |
-| 7    | 360 | 367  | 363 | 404           | → `high = 363` |
-| 8    | 360 | 363  | 361 | 404           | → `high = 361` |
-| 9    | 360 | 361  | 360 | data          | Last valid page → `low = 361` |
+| Step | low | high | mid | getShows(mid) | Action                            |
+| ---- | --- | ---- | --- | ------------- | --------------------------------- |
+| 1    | 0   | 499  | 249 | data          | Page 249 exists → `low = 250`     |
+| 2    | 250 | 499  | 374 | 404           | Out of range → `high = 374`       |
+| 3    | 250 | 374  | 312 | data          | → `low = 313`                     |
+| 4    | 313 | 374  | 343 | data          | → `low = 344`                     |
+| 5    | 344 | 374  | 359 | data          | → `low = 360`                     |
+| 6    | 360 | 374  | 367 | 404           | → `high = 367`                    |
+| 7    | 360 | 367  | 363 | 404           | → `high = 363`                    |
+| 8    | 360 | 363  | 361 | 404           | → `high = 361`                    |
+| 9    | 360 | 361  | 360 | data          | Last valid page → `low = 361`     |
 | 10   | 361 | 361  | —   | —             | `low < high` false → return `361` |
 
 The probe makes about 9 API calls instead of 361. If sync had already completed some pages (e.g. `lastCompleted = 100`), the probe would run over `[101, 600]` with the same logic.
@@ -95,25 +95,25 @@ When a page returns an empty array (or is treated as end-of-data via 404), the e
 
 Sync metadata is stored in IndexedDB and read/written via `getSyncMeta()` and `updateSyncMeta()` from the db layer.
 
-| Field                  | Purpose |
-| ---------------------- | ------- |
-| `lastCompletedPage`    | Highest page number successfully fetched and written. |
-| `totalShowsStored`     | Total number of shows in IndexedDB. |
-| `estimatedTotalPages`  | Total number of pages (from probe); used for progress and ETA. |
-| `isCompleted`          | True when sync has finished (empty page or 404). |
-| `isPaused`             | Persisted by the store so a refresh restores paused state; the engine itself only uses an in-memory `#paused` flag during a run. |
+| Field                 | Purpose                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `lastCompletedPage`   | Highest page number successfully fetched and written.                                                                            |
+| `totalShowsStored`    | Total number of shows in IndexedDB.                                                                                              |
+| `estimatedTotalPages` | Total number of pages (from probe); used for progress and ETA.                                                                   |
+| `isCompleted`         | True when sync has finished (empty page or 404).                                                                                 |
+| `isPaused`            | Persisted by the store so a refresh restores paused state; the engine itself only uses an in-memory `#paused` flag during a run. |
 
 ## Fetch and retry
 
 `#fetchPageWithRetry(page)` obtains a rate-limit slot via `rateLimiter.acquire()`, then calls `getShows(page)`. Error handling:
 
-| Error                           | Strategy |
-| ------------------------------- | -------- |
-| **HTTP 429** (rate limited)     | Exponential backoff starting at 2 s, doubling up to 30 s max. Retries indefinitely (no finite count). |
-| **HTTP 404**                    | Treated as end of data: return `[]`. |
-| **HTTP 4xx** (non-404, non-429) | Throw immediately — client-side bug. |
+| Error                           | Strategy                                                                                                          |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **HTTP 429** (rate limited)     | Exponential backoff starting at 2 s, doubling up to 30 s max. Retries indefinitely (no finite count).             |
+| **HTTP 404**                    | Treated as end of data: return `[]`.                                                                              |
+| **HTTP 4xx** (non-404, non-429) | Throw immediately — client-side bug.                                                                              |
 | **HTTP 5xx / network errors**   | Retry up to 5 times with backoff 1 s, 2 s, 4 s, 8 s, 16 s. If all retries fail, throw (caller calls `onError()`). |
-| **IndexedDB write failure**      | Not retried; main loop catches and calls `onError()`. |
+| **IndexedDB write failure**     | Not retried; main loop catches and calls `onError()`.                                                             |
 
 For 429, the engine sleeps with `backoff429Ms`, then doubles it (capped at 30 s) and continues the loop. For transient errors, it runs an inner retry loop with the fixed backoff schedule; each retry acquires a rate-limit slot again before calling `getShows(page)`.
 
@@ -136,25 +136,25 @@ For 429, the engine sleeps with `backoff429Ms`, then doubles it (capped at 30 s)
 
 ## API summary (quick reference)
 
-| Method / constructor | Description |
-| -------------------- | ----------- |
-| `constructor(callbacks: ShowSyncEngineCallbacks)` | Creates the engine with `onProgress`, `onComplete`, and `onError` callbacks. |
-| `start(): Promise<void>` | Loads/initializes meta, probes total pages if needed, then runs the sequential fetch loop. Resolves when the loop exits (complete, error, or stopped). |
-| `pause(): void`        | Sets internal paused flag; loop blocks in `#waitIfPaused()`. |
-| `resume(): void`       | Clears paused flag; loop continues. |
-| `dispose(): void`      | Stops the engine and disposes the rate limiter. |
+| Method / constructor                              | Description                                                                                                                                            |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `constructor(callbacks: ShowSyncEngineCallbacks)` | Creates the engine with `onProgress`, `onComplete`, and `onError` callbacks.                                                                           |
+| `start(): Promise<void>`                          | Loads/initializes meta, probes total pages if needed, then runs the sequential fetch loop. Resolves when the loop exits (complete, error, or stopped). |
+| `pause(): void`                                   | Sets internal paused flag; loop blocks in `#waitIfPaused()`.                                                                                           |
+| `resume(): void`                                  | Clears paused flag; loop continues.                                                                                                                    |
+| `dispose(): void`                                 | Stops the engine and disposes the rate limiter.                                                                                                        |
 
 **Callbacks:**
 
-| Callback        | When |
-| --------------- | ---- |
+| Callback        | When                                                                                                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `onProgress(p)` | After each page is written; `p` includes `currentPage`, `lastCompletedPage`, `totalShowsStored`, `estimatedTotalPages`, `pagesPerSecond`, `estimatedTimeRemainingMs`. |
-| `onComplete()`  | When sync finishes (empty page or 404). |
-| `onError(msg)`  | On unrecoverable fetch error or IndexedDB write failure. |
+| `onComplete()`  | When sync finishes (empty page or 404).                                                                                                                               |
+| `onError(msg)`  | On unrecoverable fetch error or IndexedDB write failure.                                                                                                              |
 
 ## Related documentation
 
 - [ADR-003: Background Sync Engine with Pause/Resume](../adr/003-background-sync-engine.md) — Decision and context.
 - [Rate limiter (architecture)](rate-limiter.md) — How the rate limiter works.
 - [README — Architecture](../../README.md#architecture) — High-level application architecture.
-- [show-sync-engine.ts](../../src/services/show-sync-engine.ts) — Source implementation.
+- [engine.ts](../../src/features/show-sync/model/engine.ts) — Source implementation.
