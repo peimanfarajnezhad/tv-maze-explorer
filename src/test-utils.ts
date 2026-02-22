@@ -9,8 +9,8 @@ import { render, type RenderOptions } from '@testing-library/vue'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-import { db } from '@/db'
-import { routes } from '@/router'
+import { db } from '@/shared/db'
+import { routes } from '@/app/router'
 import type {
   TvmazeShow,
   TvmazeCast,
@@ -19,8 +19,8 @@ import type {
   TvmazeEpisode,
   TvmazePerson,
   TvmazeCharacter,
-} from '@/types'
-import { useShowSyncStore, type SyncStatus } from '@/stores/show-sync'
+} from '@/shared/types'
+import { useShowSyncStore, type SyncStatus } from '@/features/show-sync'
 
 // --- Data & DB helpers ---
 

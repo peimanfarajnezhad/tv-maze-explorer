@@ -1,6 +1,6 @@
 # Database Layer (IndexedDB + Dexie)
 
-**Related:** [ADR-004: IndexedDB Indexes for Sort and Filter](../adr/004-indexeddb-indexes-for-sort-filter.md), [ADR-001: Client-Side IndexedDB Sync](../adr/001-client-side-indexeddb-sync.md), [index.ts](../../src/db/index.ts)
+**Related:** [ADR-004: IndexedDB Indexes for Sort and Filter](../adr/004-indexeddb-indexes-for-sort-filter.md), [ADR-001: Client-Side IndexedDB Sync](../adr/001-client-side-indexeddb-sync.md), [index.ts](../../src/shared/db/index.ts)
 
 ## Summary
 
@@ -43,10 +43,10 @@ flowchart LR
 
 The Dexie database `TvMazeDb` defines:
 
-| Store     | Key  | Indexes                                                                 | Purpose                                                                 |
-| --------- | ---- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `shows`   | `id` | `id, name, *genres, _ratingSort, _premieredSort`                         | Show records with precomputed sort keys; multi-entry genre index.       |
-| `syncMeta`| `id` | `id`                                                                    | Single row: sync progress and pause state.                             |
+| Store      | Key  | Indexes                                          | Purpose                                                           |
+| ---------- | ---- | ------------------------------------------------ | ----------------------------------------------------------------- |
+| `shows`    | `id` | `id, name, *genres, _ratingSort, _premieredSort` | Show records with precomputed sort keys; multi-entry genre index. |
+| `syncMeta` | `id` | `id`                                             | Single row: sync progress and pause state.                        |
 
 Index semantics (e.g. why `*genres` is multi-entry, how sort keys are used) are described in [ADR-004](../adr/004-indexeddb-indexes-for-sort-filter.md).
 
@@ -63,13 +63,13 @@ So missing rating or premiere date sorts to the end when ordering descending. `b
 
 Single record with `id: SYNC_META_ID` (`'showSync'`). Fields:
 
-| Field                  | Purpose                                                                 |
-| ---------------------- | ----------------------------------------------------------------------- |
-| `lastCompletedPage`    | Highest page number successfully written by the sync engine.             |
-| `totalShowsStored`     | Total number of shows in the `shows` store (can be read via `getShowCount()`). |
-| `estimatedTotalPages`  | Total pages (from probe); used for progress and ETA.                    |
-| `isCompleted`          | True when sync has finished (empty page or 404).                        |
-| `isPaused`             | Persisted pause state so a refresh restores UI state.                   |
+| Field                 | Purpose                                                                        |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `lastCompletedPage`   | Highest page number successfully written by the sync engine.                   |
+| `totalShowsStored`    | Total number of shows in the `shows` store (can be read via `getShowCount()`). |
+| `estimatedTotalPages` | Total pages (from probe); used for progress and ETA.                           |
+| `isCompleted`         | True when sync has finished (empty page or 404).                               |
+| `isPaused`            | Persisted pause state so a refresh restores UI state.                          |
 
 `updateSyncMeta(partial)` merges `partial` over the existing row and puts the result; if no row exists, defaults fill missing fields.
 
@@ -81,34 +81,34 @@ Migrations are declared on the Dexie instance:
 2. **v2** — `shows: 'id, name, *genres'`. Multi-entry genre index for genre listing and genre-scoped queries.
 3. **v3** — `shows: 'id, name, *genres, _ratingSort, _premieredSort'`. Sort-key indexes plus an upgrade that backfills `_ratingSort` and `_premieredSort` for all existing show records.
 
-See [ADR-004](../adr/004-indexeddb-indexes-for-sort-filter.md) and [index.ts](../../src/db/index.ts) for the exact upgrade logic.
+See [ADR-004](../adr/004-indexeddb-indexes-for-sort-filter.md) and [index.ts](../../src/shared/db/index.ts) for the exact upgrade logic.
 
 ## Consumers
 
-| Consumer            | Uses                                                                     |
-| ------------------- | ----------------------------------------------------------------------- |
-| **ShowSyncEngine**  | `getSyncMeta`, `updateSyncMeta`, `bulkPutShows`, `getShowCount`, `SyncMeta` type. |
-| **Pinia show-sync store** | `getSyncMeta`, `updateSyncMeta`.                                    |
-| **Composables**     | `getAllGenresFromDb`, `getTopShowsByGenre` (genre carousels, genre list); `db` for query chains in `useShowsByGenre` (sort, filter, paginate) and `useShowDetail` (get by id). |
+| Consumer                  | Uses                                                                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **ShowSyncEngine**        | `getSyncMeta`, `updateSyncMeta`, `bulkPutShows`, `getShowCount`, `SyncMeta` type.                                                                                              |
+| **Pinia show-sync store** | `getSyncMeta`, `updateSyncMeta`.                                                                                                                                               |
+| **Composables**           | `getAllGenresFromDb`, `getTopShowsByGenre` (genre carousels, genre list); `db` for query chains in `useShowsByGenre` (sort, filter, paginate) and `useShowDetail` (get by id). |
 
 The full query chain (orderBy → reverse → filter → count / offset+limit) is described in the [README — IndexedDB Query Pipeline](../../README.md#indexeddb-query-pipeline).
 
 ## API summary (quick reference)
 
-| Export / symbol            | Description                                                                 |
-| -------------------------- | --------------------------------------------------------------------------- |
-| `db`                       | Dexie instance (`TvMazeDb`). Use `db.shows` and `db.syncMeta` for query chains. |
-| `SYNC_META_ID`             | Constant `'showSync'` — key of the single sync-meta record.                 |
-| `getSyncMeta()`            | Returns the current sync-meta row or `undefined`.                            |
-| `updateSyncMeta(partial)` | Merges `partial` into the sync-meta row and puts it; creates row with defaults if missing. |
-| `bulkPutShows(shows)`      | Maps each show through `toStoredShow()` and bulk-puts into `shows`. No-op if array is empty. |
-| `getShowCount()`           | Returns `db.shows.count()`.                                                 |
-| `getAllGenresFromDb()`     | Returns sorted unique genre names using the `*genres` index.                 |
-| `getTopShowsByGenre(genre, limit, sortBy)` | Top `limit` shows for `genre` by `sortBy` (default `_ratingSort`), descending. |
-| `toStoredShow(show)`       | Converts `TvmazeShow` to `StoredTvmazeShow` (adds sort keys).                |
-| `StoredTvmazeShow`         | Type: `TvmazeShow` plus `_ratingSort`, `_premieredSort`.                      |
-| `SyncMeta`                 | Type for the sync-meta row.                                                 |
-| `ShowSortKey`              | Type: `'_ratingSort' | '_premieredSort' | 'name'`.                          |
+| Export / symbol                            | Description                                                                                  |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------------- | -------- |
+| `db`                                       | Dexie instance (`TvMazeDb`). Use `db.shows` and `db.syncMeta` for query chains.              |
+| `SYNC_META_ID`                             | Constant `'showSync'` — key of the single sync-meta record.                                  |
+| `getSyncMeta()`                            | Returns the current sync-meta row or `undefined`.                                            |
+| `updateSyncMeta(partial)`                  | Merges `partial` into the sync-meta row and puts it; creates row with defaults if missing.   |
+| `bulkPutShows(shows)`                      | Maps each show through `toStoredShow()` and bulk-puts into `shows`. No-op if array is empty. |
+| `getShowCount()`                           | Returns `db.shows.count()`.                                                                  |
+| `getAllGenresFromDb()`                     | Returns sorted unique genre names using the `*genres` index.                                 |
+| `getTopShowsByGenre(genre, limit, sortBy)` | Top `limit` shows for `genre` by `sortBy` (default `_ratingSort`), descending.               |
+| `toStoredShow(show)`                       | Converts `TvmazeShow` to `StoredTvmazeShow` (adds sort keys).                                |
+| `StoredTvmazeShow`                         | Type: `TvmazeShow` plus `_ratingSort`, `_premieredSort`.                                     |
+| `SyncMeta`                                 | Type for the sync-meta row.                                                                  |
+| `ShowSortKey`                              | Type: `'\_ratingSort'                                                                        | '\_premieredSort' | 'name'`. |
 
 ## Related documentation
 
@@ -117,4 +117,4 @@ The full query chain (orderBy → reverse → filter → count / offset+limit) i
 - [Show Sync Engine](show-sync-engine.md) — Writes shows and sync meta; reads meta and count.
 - [README — Architecture](../../README.md#architecture) — High-level data paths.
 - [README — IndexedDB Query Pipeline](../../README.md#indexeddb-query-pipeline) — Query chain (orderBy, filter, pagination).
-- [index.ts](../../src/db/index.ts) — Source implementation.
+- [index.ts](../../src/shared/db/index.ts) — Source implementation.

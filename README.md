@@ -44,7 +44,7 @@ Full rationale is documented in the [Architecture Decision Records](#architectur
 - **Utilities:** VueUse
 - **Unit testing:** Vitest 4 + Testing Library + Vue Test Utils
 - **E2E testing:** Playwright (Chromium, Firefox, WebKit)
-- **Linting:** ESLint + Oxlint + Prettier
+- **Linting:** ESLint + Oxlint + Steiger (FSD) + Prettier
 - **CI/CD:** GitHub Actions — CI on pull requests, deploy to GitHub Pages on merge to `main`
 
 ## Architecture
@@ -193,40 +193,27 @@ Sort keys (`_ratingSort`, `_premieredSort`) are precomputed during `bulkPutShows
 
 ## Project Structure
 
+The app follows [Feature-Sliced Design](https://feature-sliced.design/) (FSD). See [docs/architecture/fsd-structure.md](docs/architecture/fsd-structure.md) for the full reference and [ADR-006](docs/adr/006-feature-sliced-design-architecture.md) for the decision.
+
 ```bash
 src/
-├── components/           Reusable UI components
-│   ├── layout/           App shell — header, footer, search modal
-│   └── ui/               Base primitives (shadcn-vue / Reka UI)
-├── composables/          Vue composables — data fetching, theme
-│   ├── use-shows-by-genre.ts   Genre page with search, sort, pagination
-│   ├── use-show-detail.ts      Show detail with progressive loading
-│   ├── use-genre-carousels.ts  Home page genre carousels
-│   ├── use-all-genres.ts       Genre list from IndexedDB
-│   └── use-theme.ts            Light / dark / auto theme cycling
-├── db/                   Dexie database — schema, indexes, CRUD helpers
-├── lib/                  Pure utilities — slug conversion, arrays, genre colors
-├── router/               Vue Router — lazy-loaded routes
-├── services/             API client, rate limiter, sync engine
-├── stores/               Pinia stores — show sync state
-├── types/                TypeScript interfaces — Show, Episode, Person, Season
-└── views/                Route-level page components
-    ├── HomeView.vue          Genre carousels
-    ├── SearchView.vue        Full-text search + genre filter + sort
-    ├── GenresView.vue        All genres grid
-    ├── GenreView.vue         Single genre with sort + pagination
-    └── ShowDetailView.vue    Show detail — cast, crew, seasons, episodes
+├── app/                  Router, global styles
+├── pages/                Route-level pages (HomePage, SearchPage, GenresPage, GenrePage, ShowDetailPage)
+├── widgets/              App layout, show-sync dashboard, genre carousels
+├── features/             show-sync (store, engine, badge), theme (toggle)
+├── entities/             show, genre, episode, person (UI + model)
+└── shared/               UI primitives, api, db, lib, config, types
 ```
 
 ### Routes
 
-| Path                            | View             | Description                                         |
+| Path                            | Page             | Description                                         |
 | ------------------------------- | ---------------- | --------------------------------------------------- |
-| `/`                             | `HomeView`       | Genre carousels with top shows                      |
-| `/search?q=&genre=&sort=&page=` | `SearchView`     | Search with genre filter, sort, pagination          |
-| `/genres`                       | `GenresView`     | Grid of all genres                                  |
-| `/genres/:name?sort=&page=`     | `GenreView`      | Shows for a single genre                            |
-| `/shows/:id`                    | `ShowDetailView` | Full show detail with cast, crew, seasons, episodes |
+| `/`                             | `HomePage`       | Genre carousels with top shows                      |
+| `/search?q=&genre=&sort=&page=` | `SearchPage`     | Search with genre filter, sort, pagination          |
+| `/genres`                       | `GenresPage`     | Grid of all genres                                  |
+| `/genres/:name?sort=&page=`     | `GenrePage`      | Shows for a single genre                            |
+| `/shows/:id`                    | `ShowDetailPage` | Full show detail with cast, crew, seasons, episodes |
 
 ## Getting Started
 
@@ -270,7 +257,7 @@ npm run format          # Prettier
 
 ### Adding shadcn-vue UI Components
 
-The project uses [shadcn-vue](https://www.shadcn-vue.com/) (Reka UI) for base UI primitives in `src/components/ui/`. To add a new component:
+The project uses [shadcn-vue](https://www.shadcn-vue.com/) (Reka UI) for base UI primitives in `src/shared/ui/`. To add a new component:
 
 ```sh
 # Interactive: list available components and pick one
@@ -281,7 +268,7 @@ npm run ui:add -- button
 npm run ui:add -- dialog card
 ```
 
-Components are installed into `src/components/ui/` according to `components.json`. Use `--yes` to skip confirmation, or `--overwrite` to replace existing files (append after `--` when using the script).
+Components are installed into `src/shared/ui/` according to `components.json`. Use `--yes` to skip confirmation, or `--overwrite` to replace existing files (append after `--` when using the script).
 
 ## CI/CD
 
@@ -310,10 +297,10 @@ flowchart LR
 
 ## Known Limitations
 
-1. **Incomplete data during sync** — Search and sort always query against data synced so far. Until the background sync completes, results may be partial or rankings incomplete. Users are informed of this via an alert on the search-view and genre-view pages.
+1. **Incomplete data during sync** — Search and sort always query against data synced so far. Until the background sync completes, results may be partial or rankings incomplete. Users are informed of this via an alert on the search and genre pages.
 2. **Storage footprint** — The TV Maze API currently exposes ~361 pages of shows. Storing them all in IndexedDB requires approximately 80 MB of browser storage.
 3. **No SSR / SEO** — As a pure SPA, the application is not indexable by search engines. Server-side rendering (e.g., Nuxt.js) would be needed for SEO.
-4. **E2E coverage** — End-to-end tests are minimal (one smoke test). The unit test suite covers all components, composables, services, and the database layer.
+4. **E2E coverage** — End-to-end tests are minimal (one smoke test). The unit test suite covers pages, widgets, features, entities, and the shared layer (including the database).
 
 ## What I Would Do Differently in Production
 
@@ -326,10 +313,11 @@ flowchart LR
 
 ## Architecture Decision Records
 
-| ADR                                                      | Title                                             |
-| -------------------------------------------------------- | ------------------------------------------------- |
-| [001](docs/adr/001-client-side-indexeddb-sync.md)        | Client-Side SPA with IndexedDB Background Sync    |
-| [002](docs/adr/002-tech-stack-selection.md)              | Tech Stack Selection                              |
-| [003](docs/adr/003-background-sync-engine.md)            | Background Sync Engine with Pause/Resume          |
-| [004](docs/adr/004-indexeddb-indexes-for-sort-filter.md) | IndexedDB Indexes for Client-Side Sort and Filter |
-| [005](docs/adr/005-api-first-show-detail.md)             | API-First Strategy for Show Detail Page           |
+| ADR                                                       | Title                                             |
+| --------------------------------------------------------- | ------------------------------------------------- |
+| [001](docs/adr/001-client-side-indexeddb-sync.md)         | Client-Side SPA with IndexedDB Background Sync    |
+| [002](docs/adr/002-tech-stack-selection.md)               | Tech Stack Selection                              |
+| [003](docs/adr/003-background-sync-engine.md)             | Background Sync Engine with Pause/Resume          |
+| [004](docs/adr/004-indexeddb-indexes-for-sort-filter.md)  | IndexedDB Indexes for Client-Side Sort and Filter |
+| [005](docs/adr/005-api-first-show-detail.md)              | API-First Strategy for Show Detail Page           |
+| [006](docs/adr/006-feature-sliced-design-architecture.md) | Feature-Sliced Design Architecture                |

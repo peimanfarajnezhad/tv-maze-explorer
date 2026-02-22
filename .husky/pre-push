@@ -1,2 +1,5 @@
 #!/usr/bin/env sh
-npm run build
+npm run lint
+npm run type-check
+npm run test:unit -- --run
+npm run build-only

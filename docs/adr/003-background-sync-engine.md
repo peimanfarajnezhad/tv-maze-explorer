@@ -10,21 +10,22 @@ The application needs to download ~80 000 shows from the TV Maze API (paginated 
 
 ## Decision
 
-Implement a `ShowSyncEngine` class and a `RateLimiter` class in `src/services/`. The Pinia store (`useShowSyncStore`) wraps the engine and exposes reactive state to the UI.
+Implement a `ShowSyncEngine` class and a `RateLimiter` class (originally in `src/services/`; after FSD migration they live in `src/features/show-sync/model/` — see [ADR-006](006-feature-sliced-design-architecture.md) and [fsd-structure.md](../architecture/fsd-structure.md)). The Pinia store (`useShowSyncStore`) wraps the engine and exposes reactive state to the UI.
 
 ### Sync Lifecycle
 
 1. **Initialization** — On app start, the Pinia store reads `syncMeta` from IndexedDB. If the sync was previously completed, the store restores the completed state. If it was paused, the store restores the paused state. Otherwise, it creates a new `ShowSyncEngine` and calls `start()`.
 2. **Page probing** — Before fetching sequentially, the engine estimates the total number of pages via binary search. Starting from `lastCompletedPage + 1`, it probes up to 500 pages ahead, using HTTP 404 responses (TV Maze returns 404 for out-of-range pages) to narrow the upper bound. This enables a progress bar and ETA calculation.
 3. **Sequential fetch** — The engine loops through pages starting from `lastCompletedPage + 1`. For each page:
-  - It calls `rateLimiter.acquire()` to wait for an available slot.
-  - It fetches `GET /shows?page=N`.
-  - On success, it calls `bulkPutShows()` to upsert shows into IndexedDB (with precomputed sort keys) and `updateSyncMeta()` to persist progress.
-  - It emits a progress event with the current page, total stored, pages/second, and estimated time remaining.
-4. **Completion** — When a page returns an empty array (or 404), the engine marks `isCompleted: true` in `syncMeta` and calls `onComplete()`.
+
+- It calls `rateLimiter.acquire()` to wait for an available slot.
+- It fetches `GET /shows?page=N`.
+- On success, it calls `bulkPutShows()` to upsert shows into IndexedDB (with precomputed sort keys) and `updateSyncMeta()` to persist progress.
+- It emits a progress event with the current page, total stored, pages/second, and estimated time remaining.
+
+1. **Completion** — When a page returns an empty array (or 404), the engine marks `isCompleted: true` in `syncMeta` and calls `onComplete()`.
 
 ### Error Handling and Retry
-
 
 | Error                           | Strategy                                                                                                                |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +33,6 @@ Implement a `ShowSyncEngine` class and a `RateLimiter` class in `src/services/`.
 | **HTTP 5xx / network errors**   | Retry up to 5 times with backoff schedule: 1 s, 2 s, 4 s, 8 s, 16 s. If all retries fail, the engine calls `onError()`. |
 | **HTTP 4xx (non-404, non-429)** | Throw immediately — these indicate a client-side bug.                                                                   |
 | **IndexedDB write failure**     | Report error via `onError()` — no retry (likely a storage quota or browser issue).                                      |
-
 
 ### Pause and Resume
 
@@ -62,4 +62,3 @@ The engine tracks the last 20 page-fetch timestamps in a rolling window. Pages p
 - Sync progress survives page refreshes. Returning users who previously completed the sync see instant results with no network requests for catalogue data.
 - The rate limiter is conservative — it tracks client-side timestamps but does not account for other tabs or browser extensions making requests to the same API. In practice, TV Maze's rate limit is generous enough that collisions are rare.
 - The engine is a plain TypeScript class with no framework dependencies, making it independently testable.
-
